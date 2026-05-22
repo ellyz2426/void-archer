@@ -1,0 +1,50 @@
+<style>
+  .title-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-color: #00ffcc;
+    border-width: 0.15;
+    border-radius: 2;
+    gap: 2;
+  }
+  .title-text {
+    font-size: 5;
+    color: #00ffcc;
+    font-weight: bold;
+  }
+  .subtitle {
+    font-size: 2;
+    color: #66ffdd;
+  }
+  .menu-button {
+    font-size: 2.5;
+    color: #ffffff;
+    background-color: rgba(0, 255, 204, 0.15);
+    border-color: #00ffcc;
+    border-width: 0.08;
+    border-radius: 1;
+    padding: 1.2;
+    padding-left: 4;
+    padding-right: 4;
+    cursor: pointer;
+  }
+  .menu-button:hover {
+    background-color: rgba(0, 255, 204, 0.35);
+  }
+  .version-text {
+    font-size: 1.2;
+    color: #446655;
+  }
+</style>
+<div class="title-panel">
+  <span class="title-text">VOID ARCHER</span>
+  <span class="subtitle">Holodeck Archery Arena</span>
+  <button id="btn-play" class="menu-button" cursor="pointer">PLAY</button>
+  <button id="btn-leaderboard" class="menu-button" cursor="pointer">LEADERBOARD</button>
+  <button id="btn-achievements" class="menu-button" cursor="pointer">ACHIEVEMENTS</button>
+  <button id="btn-settings" class="menu-button" cursor="pointer">SETTINGS</button>
+  <span class="version-text">v1.0 · IWSDK 0.4.1</span>
+</div>

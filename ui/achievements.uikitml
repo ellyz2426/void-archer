@@ -1,0 +1,78 @@
+<style>
+  .achiev-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3;
+    background-color: rgba(0, 0, 0, 0.95);
+    border-color: #cc66ff;
+    border-width: 0.12;
+    border-radius: 2;
+    gap: 1;
+  }
+  .achiev-title {
+    font-size: 3.5;
+    color: #cc66ff;
+    font-weight: bold;
+  }
+  .achiev-count {
+    font-size: 1.5;
+    color: #aa88cc;
+  }
+  .achiev-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5;
+    align-items: center;
+    padding: 0.6;
+    padding-left: 2;
+    padding-right: 2;
+    background-color: rgba(204, 102, 255, 0.05);
+    border-radius: 0.5;
+  }
+  .achiev-icon {
+    font-size: 2;
+    color: #cc66ff;
+  }
+  .achiev-name {
+    font-size: 1.6;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  .achiev-desc {
+    font-size: 1.2;
+    color: #887799;
+  }
+  .achiev-locked {
+    font-size: 1.6;
+    color: #444444;
+  }
+  .achiev-back {
+    font-size: 2;
+    color: #ff6666;
+    background-color: rgba(255, 100, 100, 0.1);
+    border-color: #ff6666;
+    border-width: 0.06;
+    border-radius: 1;
+    padding: 0.8;
+    padding-left: 3;
+    padding-right: 3;
+    cursor: pointer;
+  }
+  .achiev-back:hover {
+    background-color: rgba(255, 100, 100, 0.3);
+  }
+</style>
+<div class="achiev-panel">
+  <span class="achiev-title">ACHIEVEMENTS</span>
+  <span id="achiev-count" class="achiev-count">0 / 15 Unlocked</span>
+  <div id="ach-1" class="achiev-row"><span class="achiev-icon">🎯</span><span id="ach-name-1" class="achiev-name">First Shot</span><span id="ach-desc-1" class="achiev-desc">Hit your first target</span></div>
+  <div id="ach-2" class="achiev-row"><span class="achiev-icon">🔥</span><span id="ach-name-2" class="achiev-name">Hot Streak</span><span id="ach-desc-2" class="achiev-desc">5 consecutive hits</span></div>
+  <div id="ach-3" class="achiev-row"><span class="achiev-icon">💎</span><span id="ach-name-3" class="achiev-name">Bullseye Master</span><span id="ach-desc-3" class="achiev-desc">10 bullseyes in one game</span></div>
+  <div id="ach-4" class="achiev-row"><span class="achiev-icon">⚡</span><span id="ach-name-4" class="achiev-name">Speed Demon</span><span id="ach-desc-4" class="achiev-desc">Score 5000+ in Time Attack</span></div>
+  <div id="ach-5" class="achiev-row"><span class="achiev-icon">🛡️</span><span id="ach-name-5" class="achiev-name">Endurance King</span><span id="ach-desc-5" class="achiev-desc">Survive 50 targets in Endurance</span></div>
+  <div id="ach-6" class="achiev-row"><span class="achiev-icon">🏆</span><span id="ach-name-6" class="achiev-name">Perfect Round</span><span id="ach-desc-6" class="achiev-desc">All bullseyes in Target Range</span></div>
+  <div id="ach-7" class="achiev-row"><span class="achiev-icon">🌟</span><span id="ach-name-7" class="achiev-name">Sharpshooter</span><span id="ach-desc-7" class="achiev-desc">95%+ accuracy in any mode</span></div>
+  <div id="ach-8" class="achiev-row"><span class="achiev-icon">💥</span><span id="ach-name-8" class="achiev-name">Combo Master</span><span id="ach-desc-8" class="achiev-desc">Reach x5 combo multiplier</span></div>
+  <button id="btn-achiev-back" class="achiev-back" cursor="pointer">BACK</button>
+</div>

@@ -1,0 +1,93 @@
+<style>
+  .settings-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3;
+    background-color: rgba(0, 0, 0, 0.95);
+    border-color: #00ffcc;
+    border-width: 0.12;
+    border-radius: 2;
+    gap: 1.2;
+  }
+  .settings-title {
+    font-size: 3.5;
+    color: #00ffcc;
+    font-weight: bold;
+  }
+  .setting-row {
+    display: flex;
+    flex-direction: row;
+    gap: 2;
+    align-items: center;
+  }
+  .setting-label {
+    font-size: 1.8;
+    color: #88ccbb;
+  }
+  .setting-value {
+    font-size: 1.8;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  .setting-btn {
+    font-size: 1.6;
+    color: #00ffcc;
+    background-color: rgba(0, 255, 204, 0.1);
+    border-color: #00ffcc;
+    border-width: 0.05;
+    border-radius: 0.6;
+    padding: 0.5;
+    padding-left: 1;
+    padding-right: 1;
+    cursor: pointer;
+  }
+  .setting-btn:hover {
+    background-color: rgba(0, 255, 204, 0.3);
+  }
+  .settings-back {
+    font-size: 2;
+    color: #ff6666;
+    background-color: rgba(255, 100, 100, 0.1);
+    border-color: #ff6666;
+    border-width: 0.06;
+    border-radius: 1;
+    padding: 0.8;
+    padding-left: 3;
+    padding-right: 3;
+    cursor: pointer;
+  }
+  .settings-back:hover {
+    background-color: rgba(255, 100, 100, 0.3);
+  }
+</style>
+<div class="settings-panel">
+  <span class="settings-title">SETTINGS</span>
+  <div class="setting-row">
+    <span class="setting-label">Master Volume</span>
+    <button id="btn-vol-down" class="setting-btn" cursor="pointer">-</button>
+    <span id="val-volume" class="setting-value">80%</span>
+    <button id="btn-vol-up" class="setting-btn" cursor="pointer">+</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">SFX Volume</span>
+    <button id="btn-sfx-down" class="setting-btn" cursor="pointer">-</button>
+    <span id="val-sfx" class="setting-value">80%</span>
+    <button id="btn-sfx-up" class="setting-btn" cursor="pointer">+</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">Aim Sensitivity</span>
+    <button id="btn-sens-down" class="setting-btn" cursor="pointer">-</button>
+    <span id="val-sensitivity" class="setting-value">5</span>
+    <button id="btn-sens-up" class="setting-btn" cursor="pointer">+</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">Arrow Trail</span>
+    <button id="btn-trail-toggle" class="setting-btn" cursor="pointer">ON</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">Camera Shake</span>
+    <button id="btn-shake-toggle" class="setting-btn" cursor="pointer">ON</button>
+  </div>
+  <button id="btn-settings-back" class="settings-back" cursor="pointer">BACK</button>
+</div>

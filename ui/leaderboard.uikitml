@@ -1,0 +1,101 @@
+<style>
+  .leaderboard-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3;
+    background-color: rgba(0, 0, 0, 0.95);
+    border-color: #ffcc00;
+    border-width: 0.12;
+    border-radius: 2;
+    gap: 1;
+  }
+  .lb-title {
+    font-size: 3.5;
+    color: #ffcc00;
+    font-weight: bold;
+  }
+  .lb-mode-label {
+    font-size: 1.8;
+    color: #88ccbb;
+  }
+  .lb-row {
+    display: flex;
+    flex-direction: row;
+    gap: 2;
+    align-items: center;
+    padding: 0.5;
+    padding-left: 2;
+    padding-right: 2;
+    background-color: rgba(255, 204, 0, 0.05);
+    border-radius: 0.5;
+  }
+  .lb-rank {
+    font-size: 2;
+    color: #ffcc00;
+    font-weight: bold;
+  }
+  .lb-score {
+    font-size: 2;
+    color: #ffffff;
+  }
+  .lb-date {
+    font-size: 1.2;
+    color: #667766;
+  }
+  .lb-empty {
+    font-size: 1.5;
+    color: #556655;
+  }
+  .lb-back {
+    font-size: 2;
+    color: #ff6666;
+    background-color: rgba(255, 100, 100, 0.1);
+    border-color: #ff6666;
+    border-width: 0.06;
+    border-radius: 1;
+    padding: 0.8;
+    padding-left: 3;
+    padding-right: 3;
+    cursor: pointer;
+  }
+  .lb-back:hover {
+    background-color: rgba(255, 100, 100, 0.3);
+  }
+  .lb-tab {
+    font-size: 1.6;
+    color: #ffffff;
+    background-color: rgba(0, 255, 204, 0.1);
+    border-color: #00ffcc;
+    border-width: 0.05;
+    border-radius: 0.8;
+    padding: 0.6;
+    padding-left: 1.5;
+    padding-right: 1.5;
+    cursor: pointer;
+  }
+  .lb-tab:hover {
+    background-color: rgba(0, 255, 204, 0.3);
+  }
+  .lb-tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 1;
+  }
+</style>
+<div class="leaderboard-panel">
+  <span class="lb-title">LEADERBOARD</span>
+  <div class="lb-tabs">
+    <button id="lb-tab-range" class="lb-tab" cursor="pointer">RANGE</button>
+    <button id="lb-tab-skeet" class="lb-tab" cursor="pointer">SKEET</button>
+    <button id="lb-tab-time" class="lb-tab" cursor="pointer">TIME</button>
+    <button id="lb-tab-endurance" class="lb-tab" cursor="pointer">ENDURE</button>
+  </div>
+  <span id="lb-mode-name" class="lb-mode-label">TARGET RANGE</span>
+  <div id="lb-entry-1" class="lb-row"><span class="lb-rank">1.</span><span id="lb-score-1" class="lb-score">---</span><span id="lb-date-1" class="lb-date"></span></div>
+  <div id="lb-entry-2" class="lb-row"><span class="lb-rank">2.</span><span id="lb-score-2" class="lb-score">---</span><span id="lb-date-2" class="lb-date"></span></div>
+  <div id="lb-entry-3" class="lb-row"><span class="lb-rank">3.</span><span id="lb-score-3" class="lb-score">---</span><span id="lb-date-3" class="lb-date"></span></div>
+  <div id="lb-entry-4" class="lb-row"><span class="lb-rank">4.</span><span id="lb-score-4" class="lb-score">---</span><span id="lb-date-4" class="lb-date"></span></div>
+  <div id="lb-entry-5" class="lb-row"><span class="lb-rank">5.</span><span id="lb-score-5" class="lb-score">---</span><span id="lb-date-5" class="lb-date"></span></div>
+  <button id="btn-lb-back" class="lb-back" cursor="pointer">BACK</button>
+</div>
