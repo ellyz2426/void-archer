@@ -1,107 +1,62 @@
 # Void Archer VR
 
-A holodeck-themed VR archery arena built with [IWSDK](https://iwsdk.dev) 0.4.1. Draw your energy bow, aim through the void, and hit holographic targets with physics-based arrows.
+A cyberpunk archery arena built with [IWSDK](https://iwsdk.dev) 0.4.1.
 
-🎯 **[Play Now](https://ellyz2426.github.io/void-archer/)** | 📦 [GitHub](https://github.com/ellyz2426/void-archer)
+**[Play Now](https://ellyz2426.github.io/void-archer/)** | [Repo](https://github.com/ellyz2426/void-archer)
 
 ## Features
 
-### Core Gameplay
-- **Physics-based arrow flight** — arrows follow realistic trajectories with gravity
-- **Bow draw mechanic** — hold to draw, release to fire; draw time = power
-- **Aim trajectory preview** — see your arrow's projected path while drawing
-- **Bullseye scoring zones** — 50 (bullseye), 30 (inner), 20 (outer), 10 (edge) points
+- **Physics-based archery** — Hold to draw, release to fire. Gravity + wind affect trajectory.
+- **5 Game Modes** — Target Range, Skeet Shoot, Time Attack, Endurance, Challenge
+- **XR Ready** — Full VR controller support (trigger to fire, grip for power-ups, B to pause)
+- **Browser Fallback** — Mouse/keyboard controls for desktop play
+- **Spatial UI** — All menus and HUD built with IWSDK PanelUI (.uikitml) for native XR rendering
+- **Power-Up System** — Slow Motion, Multishot, Precision, Explosive (grip-activated, cooldown cycle)
+- **Dynamic Wind** — Environmental wind that shifts during gameplay
+- **25 Achievements** — Track progress across all modes
+- **Per-Mode Leaderboards** — Top 10 scores saved locally
+- **Procedural Audio** — All sounds generated with Web Audio API (no asset files)
+- **Holodeck Environment** — Neon wireframe arena with floating decorations
 
-### Game Modes
-- **Target Range** — 5 rounds of stationary targets at increasing distances
-- **Skeet Shoot** — moving targets fly through the arena; lead your shots
-- **Time Attack** — 90 seconds, unlimited arrows, score as much as possible
-- **Endurance** — miss 3 targets and it's game over; survive the void
+## Controls
 
-### Target Types
-- **Static** — stationary bullseye targets
-- **Moving** — targets that slide left/right
-- **Oscillating** — figure-8 motion patterns
-- **Rising** — launched upward in an arc (skeet)
+### VR (Quest 3)
+| Action | Control |
+|--------|---------|
+| Aim | Point controller |
+| Draw/Fire | Hold/release trigger |
+| Power-up | Grip button |
+| Pause | B button |
 
-### Scoring System
-- Combo multiplier: consecutive hits increase your multiplier (x1 → x1.5 → x2 → x3 → x5)
-- Miss resets your combo
-- Per-mode leaderboards (top 10, localStorage)
+### Browser
+| Action | Control |
+|--------|---------|
+| Aim | Move mouse |
+| Draw/Fire | Hold/release left click |
+| Power-up | (grip in XR only) |
+| Pause | Escape |
 
-### XR Controls (VR)
-| Input | Action |
-|-------|--------|
-| Right trigger | Draw bow / release arrow |
-| Right thumbstick | Navigate menus |
-| A button | Select / confirm |
-| B button | Pause / back |
-| Controller aim | Aim direction |
+## Game Modes
 
-### Browser Controls
-| Input | Action |
-|-------|--------|
-| Mouse position | Aim |
-| Click + hold | Draw bow |
-| Release click | Fire arrow |
-| ESC | Pause |
+- **Target Range** — 5 rounds of static targets at increasing distance. Later rounds add moving targets.
+- **Skeet Shoot** — Moving and rising targets with wind. 3 rounds of 20 targets.
+- **Time Attack** — 90 seconds to hit as many targets as possible.
+- **Endurance** — Survive as long as you can. 3 misses and it's over.
+- **Challenge** — 5 escalating rounds with limited arrows, time limit, and only 1 miss allowed. Wind increases each round.
 
-### Technical
-- **All UI via PanelUI** — `.uikitml` spatial panels, zero HTML DOM overlays
-- **Head-following HUD** via `Follower` component
-- **World-space menus** — title, mode select, results, leaderboard, achievements, settings
-- **Procedural audio** — Web Audio API for all sounds (bow draw, twang, target hits, ambient drone)
-- **Particle effects** — hit sparkles, target shatter, ground impact
-- **15 achievements** — unlocked through gameplay milestones
-- **Holodeck aesthetic** — neon wireframe grid, floating geometric decorations, fog depth
+## Tech Stack
 
-## Project Structure
-
-```
-void-archer/
-├── index.html
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-├── ui/                        # PanelUI templates
-│   ├── title.uikitml
-│   ├── modes.uikitml
-│   ├── hud.uikitml
-│   ├── pause.uikitml
-│   ├── results.uikitml
-│   ├── leaderboard.uikitml
-│   ├── achievements.uikitml
-│   └── settings.uikitml
-└── src/
-    ├── index.ts               # Entry point, world creation
-    ├── game.ts                # Game state machine, mode logic
-    ├── bow.ts                 # Bow controller (XR + browser)
-    ├── arrow.ts               # Arrow pool, physics, trails
-    ├── target.ts              # Target types, hit detection
-    ├── scoring.ts             # Score, combos, multipliers
-    ├── audio.ts               # Procedural Web Audio
-    ├── environment.ts         # Holodeck environment
-    ├── xrinput.ts             # XR controller handler
-    ├── uimanager.ts           # PanelUI panel management
-    ├── effects.ts             # Particle effects
-    ├── achievements.ts        # Achievement system
-    └── leaderboard.ts         # Local leaderboard
-```
+- IWSDK 0.4.1 (ECS, PanelUI, XR)
+- Vite 7 + TypeScript
+- Web Audio API (procedural)
+- Three.js (via @iwsdk/core)
 
 ## Development
 
 ```bash
 npm install
-npm run dev    # Start dev server with XR emulation
-npm run build  # Production build
+npm run dev     # Start dev server at https://localhost:8081
+npm run build   # Production build to dist/
 ```
 
-Requires Node.js ≥20.19.0 and IWSDK 0.4.1.
-
-## Build Info
-
-- **IWSDK:** 0.4.1
-- **Source files:** 13
-- **UI templates:** 8 `.uikitml` files
-- **Lines:** ~6,000+
-- Built as part of the daily IWSDK build pipeline
+Built with Hatch AI.
