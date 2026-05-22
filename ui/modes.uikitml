@@ -58,6 +58,26 @@
     color: #cc88ff;
     font-weight: bold;
   }
+  .boss-btn {
+    padding: 1.2 2;
+    background-color: rgba(40, 10, 0, 0.7);
+    border-color: #ff4400;
+    border-width: 0.1;
+    border-radius: 0.8;
+    cursor: pointer;
+  }
+  .boss-btn:hover {
+    background-color: rgba(60, 15, 0, 0.9);
+  }
+  .boss-label {
+    font-size: 1.6;
+    color: #ff6633;
+    font-weight: bold;
+  }
+  .boss-desc {
+    font-size: 0.9;
+    color: #aa6644;
+  }
   .back-btn {
     padding: 0.8 2;
     background-color: rgba(40, 20, 20, 0.5);
@@ -101,6 +121,12 @@
     <div id="btn-zen" class="zen-btn" cursor="pointer">
       <span class="zen-label">ZEN</span>
       <span class="mode-desc">Relax. No pressure.</span>
+    </div>
+  </div>
+  <div class="mode-row">
+    <div id="btn-boss" class="boss-btn" cursor="pointer">
+      <span class="boss-label">BOSS RUSH</span>
+      <span class="boss-desc">5 massive bosses. Take them down.</span>
     </div>
   </div>
   <div id="btn-modes-back" class="back-btn" cursor="pointer">

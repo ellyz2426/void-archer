@@ -7,6 +7,7 @@ import {
 } from '@iwsdk/core';
 import { EffectsManager } from './effects';
 import { AudioManager } from './audio';
+import { getThemeConfig } from './themes';
 
 interface ActiveArrow {
   group: Group;
@@ -138,6 +139,22 @@ export class ArrowManager {
       arrow = this.createArrow();
       this.arrowPool.push(arrow);
     }
+
+    // Apply theme colors to arrow
+    const theme = getThemeConfig();
+    arrow.group.traverse((child: any) => {
+      if (child.material) {
+        if (child.material.emissive) {
+          child.material.color.setHex(theme.arrowColor);
+          child.material.emissive.setHex(theme.arrowColor);
+          child.material.emissiveIntensity = 0.8;
+        } else if (child.material.color) {
+          child.material.color.setHex(theme.arrowColor);
+        }
+      }
+    });
+    // Theme-colored trail
+    (arrow.trailMesh.material as LineBasicMaterial).color.setHex(theme.trailColor);
 
     const speed = 15 + power * 25; // 15-40 m/s based on draw power
     arrow.position.copy(origin);

@@ -44,6 +44,12 @@ const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'zen_archer', name: 'Zen Archer', description: 'Hit 30 targets in Zen mode', icon: '[ZN]', unlocked: false },
   { id: 'theme_explorer', name: 'Theme Explorer', description: 'Play in all 4 environments', icon: '[4E]', unlocked: false },
   { id: 'shrink_sniper', name: 'Shrink Sniper', description: 'Bullseye a shrinking target', icon: '[SS]', unlocked: false },
+  // Round 5 achievements
+  { id: 'boss_slayer', name: 'Boss Slayer', description: 'Defeat your first boss', icon: '[BS]', unlocked: false },
+  { id: 'boss_master', name: 'Boss Master', description: 'Complete Boss Rush mode', icon: '[BM]', unlocked: false },
+  { id: 'combo_god', name: 'Combo God', description: 'Reach a 30-hit combo', icon: '[x30]', unlocked: false },
+  { id: 'score_supreme', name: 'Score Supreme', description: 'Score 100,000 lifetime points', icon: '[!!]', unlocked: false },
+  { id: 'golden_archer', name: 'Golden Archer', description: 'Get S rank in any mode', icon: '[S+]', unlocked: false },
 ];
 
 export class AchievementManager {
@@ -58,6 +64,7 @@ export class AchievementManager {
   private armorKills = 0;
   private zenHits = 0;
   private shrinkBullseyes = 0;
+  private bossKills = 0;
   private fastBullseyeCount = 0;
   private fastBullseyeTimer = 0;
   private storageKey = 'void-archer-achievements';
@@ -89,6 +96,7 @@ export class AchievementManager {
         this.armorKills = s.armorKills || 0;
         this.zenHits = s.zenHits || 0;
         this.shrinkBullseyes = s.shrinkBullseyes || 0;
+        this.bossKills = s.bossKills || 0;
       }
     } catch {}
   }
@@ -106,6 +114,7 @@ export class AchievementManager {
       armorKills: this.armorKills,
       zenHits: this.zenHits,
       shrinkBullseyes: this.shrinkBullseyes,
+      bossKills: this.bossKills,
     }));
   }
 
@@ -155,6 +164,12 @@ export class AchievementManager {
     this.save();
   }
 
+  onBossKill() {
+    this.bossKills++;
+    if (this.bossKills >= 1) this.unlock('boss_slayer');
+    this.save();
+  }
+
   checkHit(zone: HitZone, stats: any) {
     // First hit
     if (stats.totalHits >= 1) this.unlock('first_shot');
@@ -180,6 +195,9 @@ export class AchievementManager {
 
     // Combo legend
     if (stats.currentCombo >= 20) this.unlock('combo_legend');
+
+    // Combo god
+    if (stats.currentCombo >= 30) this.unlock('combo_god');
   }
 
   checkGameEnd(mode: GameMode, stats: GameStats) {
@@ -209,11 +227,17 @@ export class AchievementManager {
     // Challenge clear
     if (mode === GameMode.CHALLENGE) this.unlock('challenge_clear');
 
+    // Boss rush complete
+    if (mode === GameMode.BOSS_RUSH) this.unlock('boss_master');
+
+    // Golden archer (S rank)
+    if (stats.accuracy >= 95 && stats.totalScore >= 5000) this.unlock('golden_archer');
+
     // Marathon
     if (this.totalGames >= 10) this.unlock('marathon');
 
-    // All modes (now 6 with zen)
-    if (this.modesPlayed.size >= 6) this.unlock('all_modes');
+    // All modes (now 7 with boss rush)
+    if (this.modesPlayed.size >= 7) this.unlock('all_modes');
 
     // Arrow rain
     if (stats.totalHits + stats.totalMisses >= 100) this.unlock('arrow_rain');

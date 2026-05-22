@@ -12,6 +12,7 @@ import { TargetManager, TargetType, HitZone } from './target';
 import { UIManager } from './uimanager';
 import { XRInputHandler } from './xrinput';
 import { WindSystem, PowerUpSystem } from './powerups';
+import { CameraShake } from './camerashake';
 import { ThemeId, getAllThemes, saveSelectedTheme, getSelectedTheme } from './themes';
 
 export enum GameState {
@@ -33,6 +34,7 @@ export enum GameMode {
   ENDURANCE = 'endurance',
   CHALLENGE = 'challenge',
   ZEN = 'zen',
+  BOSS_RUSH = 'boss_rush',
 }
 
 export interface GameContext {
@@ -48,6 +50,7 @@ export interface GameContext {
   targets: TargetManager;
   ui: UIManager;
   xrInput: XRInputHandler;
+  cameraShake: CameraShake;
 }
 
 // Mode-specific config
@@ -123,6 +126,16 @@ const MODE_CONFIGS: Record<GameMode, ModeConfig> = {
     maxActiveTargets: 4,
     windEnabled: false,
   },
+  [GameMode.BOSS_RUSH]: {
+    totalRounds: 5,
+    arrowsPerRound: 999,
+    timeLimitSec: 0,
+    maxMisses: 5,
+    targetTypes: [TargetType.BOSS],
+    spawnInterval: 0,
+    maxActiveTargets: 1,
+    windEnabled: true,
+  },
 };
 
 export class GameManager {
@@ -149,6 +162,9 @@ export class GameManager {
 
   // Difficulty scaling
   private difficultyLevel = 1;
+  // Boss Rush state
+  private bossesKilled = 0;
+  private currentBossId = -1;
 
   constructor(ctx: GameContext) {
     this.ctx = ctx;
@@ -196,6 +212,16 @@ export class GameManager {
         this.ctx.audio.playTargetHit(hitResult.zone);
         this.ctx.effects.spawnHitEffect(hitResult.position, hitResult.zone);
 
+        // Score popup
+        this.ctx.effects.spawnScorePopup(hitResult.position, points, hitResult.zone);
+
+        // Camera shake based on zone
+        if (hitResult.zone === HitZone.BULLSEYE) {
+          this.ctx.cameraShake.shakeMedium();
+        } else {
+          this.ctx.cameraShake.shakeLight();
+        }
+
         // Combo chime for growing combos
         const stats = this.ctx.scoring.getStats();
         if (stats.currentCombo >= 3 && stats.currentCombo % 2 === 1) {
@@ -207,6 +233,7 @@ export class GameManager {
           this.ctx.targets.explosiveRadius(hitResult.position, 3);
           this.ctx.effects.spawnExplosion(hitResult.position);
           this.ctx.audio.playExplosion();
+          this.ctx.cameraShake.shakeHeavy();
         }
 
         // New target-type specific achievements
@@ -221,6 +248,24 @@ export class GameManager {
         }
         if (this.mode === GameMode.ZEN) {
           this.ctx.achievements.onZenHit();
+        }
+
+        // Boss kill check
+        if (hitResult.targetType === TargetType.BOSS) {
+          this.ctx.cameraShake.shakeHeavy();
+          // Check if boss is dead (processHit returns BULLSEYE zone on final boss kill)
+          if (hitResult.zone === HitZone.BULLSEYE || hitResult.points >= 50) {
+            this.bossesKilled++;
+            this.ctx.achievements.onBossKill();
+            this.ctx.audio.playExplosion();
+            this.ctx.effects.spawnExplosion(hitResult.position);
+            // Spawn next boss in Boss Rush
+            if (this.mode === GameMode.BOSS_RUSH && this.bossesKilled < this.modeConfig.totalRounds) {
+              setTimeout(() => this.spawnBoss(), 2000);
+            } else if (this.mode === GameMode.BOSS_RUSH && this.bossesKilled >= this.modeConfig.totalRounds) {
+              this.endGame();
+            }
+          }
         }
 
         this.ctx.ui.showHitFeedback(hitResult.zone, points);
@@ -285,6 +330,8 @@ export class GameManager {
     this.roundTargetsSpawned = 0;
     this.difficultyLevel = 1;
     this.gameStartTime = performance.now();
+    this.bossesKilled = 0;
+    this.currentBossId = -1;
 
     // Wind setup
     this.wind.setEnabled(this.modeConfig.windEnabled);
@@ -306,6 +353,10 @@ export class GameManager {
     // Pre-place targets for range mode
     if (mode === GameMode.RANGE) {
       this.spawnRangeTargets();
+    }
+    // Spawn first boss for Boss Rush
+    if (mode === GameMode.BOSS_RUSH) {
+      this.spawnBoss();
     }
   }
 
@@ -330,6 +381,16 @@ export class GameManager {
   private getDifficultyMultiplier(): number {
     // Scales with time and performance
     return 1 + (this.difficultyLevel - 1) * 0.15;
+  }
+
+  private spawnBoss() {
+    const z = -(8 + this.bossesKilled * 2); // Deeper each time
+    this.currentBossId = this.ctx.targets.spawnTarget(
+      TargetType.BOSS,
+      0, 2.5, z,
+    );
+    this.ctx.audio.playRoundAdvance();
+    this.ctx.cameraShake.shakeMedium();
   }
 
   private endGame() {
@@ -492,12 +553,17 @@ export class GameManager {
 
   getHUDData() {
     const stats = this.ctx.scoring.getStats();
+    // Get boss HP for display
+    let bossHP: number | undefined;
+    if (this.mode === GameMode.BOSS_RUSH) {
+      bossHP = this.ctx.targets.getBossHP();
+    }
     return {
       score: stats.totalScore,
       combo: stats.currentCombo,
       multiplier: stats.multiplier,
       arrowsLeft: this.arrowsLeft,
-      round: this.currentRound,
+      round: this.mode === GameMode.BOSS_RUSH ? this.bossesKilled + 1 : this.currentRound,
       totalRounds: this.modeConfig.totalRounds,
       timeRemaining: Math.ceil(this.timeRemaining),
       misses: this.misses,
@@ -508,6 +574,7 @@ export class GameManager {
       powerUpLabel: this.powerUps.getLabel(),
       powerUpActive: this.powerUps.isActive(),
       powerUpReady: this.powerUps.isReady(),
+      bossHP,
     };
   }
 
@@ -532,6 +599,7 @@ export class GameManager {
       case 'mode-endurance': this.startGame(GameMode.ENDURANCE); break;
       case 'mode-challenge': this.startGame(GameMode.CHALLENGE); break;
       case 'mode-zen': this.startGame(GameMode.ZEN); break;
+      case 'mode-boss': this.startGame(GameMode.BOSS_RUSH); break;
       case 'pause':
         if (this.state === GameState.PLAYING) this.setState(GameState.PAUSED);
         break;

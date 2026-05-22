@@ -371,6 +371,83 @@ export class AudioManager {
     nGain.connect(this.sfxGain!);
   }
 
+  playBossHit() {
+    const ctx = this.ensureCtx();
+    const t = ctx.currentTime;
+
+    // Heavy metallic impact
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(150, t);
+    osc1.frequency.exponentialRampToValueAtTime(50, t + 0.3);
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0.2, t);
+    g1.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    osc1.connect(g1);
+    g1.connect(this.sfxGain!);
+    osc1.start(t);
+    osc1.stop(t + 0.4);
+
+    // Distorted noise layer
+    const noise = this.createNoise(ctx, 0.25);
+    const nFilter = ctx.createBiquadFilter();
+    nFilter.type = 'bandpass';
+    nFilter.frequency.value = 800;
+    nFilter.Q.value = 3;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.12, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    noise.connect(nFilter);
+    nFilter.connect(nGain);
+    nGain.connect(this.sfxGain!);
+
+    // Sub-bass thump
+    const sub = ctx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(60, t);
+    sub.frequency.exponentialRampToValueAtTime(25, t + 0.2);
+    const subGain = ctx.createGain();
+    subGain.gain.setValueAtTime(0.25, t);
+    subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    sub.connect(subGain);
+    subGain.connect(this.sfxGain!);
+    sub.start(t);
+    sub.stop(t + 0.3);
+  }
+
+  playBossDefeat() {
+    const ctx = this.ensureCtx();
+    const t = ctx.currentTime;
+
+    // Victory fanfare
+    const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, t + i * 0.15);
+      gain.gain.linearRampToValueAtTime(0.15, t + i * 0.15 + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.15 + 0.5);
+      osc.connect(gain);
+      gain.connect(this.sfxGain!);
+      osc.start(t + i * 0.15);
+      osc.stop(t + i * 0.15 + 0.5);
+    });
+
+    // Explosion rumble under the fanfare
+    const noise = this.createNoise(ctx, 0.8);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 500;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.1, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain!);
+  }
+
   private createNoise(ctx: AudioContext, duration: number): AudioBufferSourceNode {
     const sampleRate = ctx.sampleRate;
     const samples = Math.floor(sampleRate * duration);

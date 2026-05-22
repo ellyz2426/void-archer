@@ -15,6 +15,7 @@ export enum TargetType {
   SHRINKING = 'shrinking',
   PHANTOM = 'phantom',
   ARMORED = 'armored',
+  BOSS = 'boss',
 }
 
 export enum HitZone {
@@ -54,6 +55,11 @@ interface ActiveTarget {
   armorFlashTimer: number;
   // Shrinking: radius decreases over time
   shrinkRate: number;
+  // Boss: multi-hit with phases
+  bossHitsLeft: number;
+  bossMaxHits: number;
+  bossPhase: number; // 0-2: pattern changes per phase
+  bossPatternTimer: number;
 }
 
 const ZONE_POINTS: Record<HitZone, number> = {
@@ -68,6 +74,7 @@ const TARGET_TYPE_BONUS: Partial<Record<TargetType, number>> = {
   [TargetType.SHRINKING]: 1.3,
   [TargetType.PHANTOM]: 1.5,
   [TargetType.ARMORED]: 1.2,
+  [TargetType.BOSS]: 2.0,
 };
 
 export class TargetManager {
@@ -192,6 +199,10 @@ export class TargetManager {
       armorHitsLeft: 0,
       armorFlashTimer: 0,
       shrinkRate: 0,
+      bossHitsLeft: 0,
+      bossMaxHits: 0,
+      bossPhase: 0,
+      bossPatternTimer: 0,
     };
   }
 
@@ -216,6 +227,10 @@ export class TargetManager {
     target.armorHitsLeft = 0;
     target.armorFlashTimer = 0;
     target.shrinkRate = 0;
+    target.bossHitsLeft = 0;
+    target.bossMaxHits = 0;
+    target.bossPhase = 0;
+    target.bossPatternTimer = 0;
 
     // Type-specific setup
     switch (type) {
@@ -252,11 +267,21 @@ export class TargetManager {
         target.maxAge = 12;
         target.armorHitsLeft = 2;
         break;
+      case TargetType.BOSS:
+        target.velocity.set(0, 0, 0);
+        target.maxAge = 60; // bosses last long
+        target.radius = 1.2; // big target
+        target.baseRadius = 1.2;
+        target.bossHitsLeft = 8;
+        target.bossMaxHits = 8;
+        target.bossPhase = 0;
+        target.bossPatternTimer = 0;
+        break;
     }
 
     target.group.visible = true;
     target.group.position.copy(target.position);
-    target.group.scale.setScalar(1);
+    target.group.scale.setScalar(type === TargetType.BOSS ? 2.4 : 1);
 
     // Face toward player
     target.group.lookAt(new Vector3(0, target.position.y, 0));
@@ -300,6 +325,42 @@ export class TargetManager {
         distance: hitPos.distanceTo(new Vector3(0, 1.5, 0)),
         position: target.position.clone(),
         points: 5, // small points for armor break
+        targetType: target.type,
+      };
+    }
+
+    // Boss: multi-hit with phases
+    if (target.type === TargetType.BOSS && target.bossHitsLeft > 1) {
+      target.bossHitsLeft--;
+      target.bossPatternTimer = 0; // reset pattern on hit
+
+      // Phase transitions at 66% and 33% health
+      const healthPct = target.bossHitsLeft / target.bossMaxHits;
+      if (healthPct <= 0.33 && target.bossPhase < 2) {
+        target.bossPhase = 2;
+      } else if (healthPct <= 0.66 && target.bossPhase < 1) {
+        target.bossPhase = 1;
+      }
+
+      // Flash boss on hit — scale pulse
+      const flashScale = 2.4 * (1 + 0.15 * (1 - healthPct));
+      target.group.scale.setScalar(flashScale);
+
+      // Change boss color with damage
+      const damageColor = healthPct > 0.5 ? 0xffaa00 : healthPct > 0.25 ? 0xff6600 : 0xff2200;
+      target.group.traverse((child: any) => {
+        if (child.material?.color) {
+          child.material.color.setHex(damageColor);
+        }
+      });
+
+      this.audio.playTargetHit('inner');
+      this.effects.spawnBossHitEffect(target.position);
+      return {
+        zone: HitZone.INNER,
+        distance: hitPos.distanceTo(new Vector3(0, 1.5, 0)),
+        position: target.position.clone(),
+        points: 15,
         targetType: target.type,
       };
     }
@@ -451,6 +512,35 @@ export class TargetManager {
             }
           }
           break;
+
+        case TargetType.BOSS:
+          target.bossPatternTimer += dt;
+          // Movement patterns change per phase
+          if (target.bossPhase === 0) {
+            // Phase 0: slow side-to-side
+            target.position.x = target.basePosition.x +
+              Math.sin(target.age * 0.8) * 4;
+            target.position.y = target.basePosition.y +
+              Math.sin(target.age * 0.5) * 0.5;
+          } else if (target.bossPhase === 1) {
+            // Phase 1: figure-8 pattern
+            target.position.x = target.basePosition.x +
+              Math.sin(target.age * 1.2) * 5;
+            target.position.y = target.basePosition.y +
+              Math.sin(target.age * 2.4) * 1.5;
+          } else {
+            // Phase 2: erratic fast movement
+            target.position.x = target.basePosition.x +
+              Math.sin(target.age * 2) * 6 +
+              Math.sin(target.age * 3.7) * 1.5;
+            target.position.y = target.basePosition.y +
+              Math.cos(target.age * 2.5) * 2 +
+              Math.sin(target.age * 4) * 0.5;
+            target.position.z = target.basePosition.z +
+              Math.sin(target.age * 1.5) * 3;
+          }
+          // Boss doesn't expire from age, only from destruction
+          break;
       }
 
       target.group.position.copy(target.position);
@@ -482,5 +572,10 @@ export class TargetManager {
 
   get activeCount(): number {
     return this.targets.filter(t => t.active).length;
+  }
+
+  getBossHP(): number {
+    const boss = this.targets.find(t => t.active && t.type === TargetType.BOSS);
+    return boss ? boss.bossHitsLeft : 0;
   }
 }

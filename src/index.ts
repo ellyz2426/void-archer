@@ -12,6 +12,7 @@ import { UIManager } from './uimanager';
 import { EffectsManager } from './effects';
 import { AchievementManager } from './achievements';
 import { LeaderboardManager } from './leaderboard';
+import { CameraShake } from './camerashake';
 
 // ECS System for per-frame game loop — the correct IWSDK pattern
 class GameLoopSystem extends createSystem() {
@@ -22,6 +23,7 @@ class GameLoopSystem extends createSystem() {
   private effects!: EffectsManager;
   private environment!: Environment;
   private xrInput!: XRInputHandler;
+  private cameraShake!: CameraShake;
   private lastTime = 0;
 
   init() {
@@ -36,6 +38,7 @@ class GameLoopSystem extends createSystem() {
     effects: EffectsManager;
     environment: Environment;
     xrInput: XRInputHandler;
+    cameraShake: CameraShake;
   }) {
     this.game = refs.game;
     this.bow = refs.bow;
@@ -44,6 +47,7 @@ class GameLoopSystem extends createSystem() {
     this.effects = refs.effects;
     this.environment = refs.environment;
     this.xrInput = refs.xrInput;
+    this.cameraShake = refs.cameraShake;
   }
 
   update(_delta: number, _time: number) {
@@ -74,6 +78,7 @@ class GameLoopSystem extends createSystem() {
     this.effects.update(dt);
     this.environment.update(dt);
     this.xrInput.update(dt);
+    this.cameraShake.update(dt);
   }
 }
 
@@ -108,10 +113,11 @@ async function main() {
   const targets = new TargetManager(world, effects, audio);
   const ui = new UIManager(world);
   const xrInput = new XRInputHandler(world);
+  const cameraShake = new CameraShake(world);
 
   const game = new GameManager({
     world, audio, effects, scoring, achievements,
-    leaderboard, environment, bow, arrows, targets, ui, xrInput,
+    leaderboard, environment, bow, arrows, targets, ui, xrInput, cameraShake,
   });
 
   // Wire cross-references
@@ -126,7 +132,7 @@ async function main() {
   // Register the game loop as a proper ECS system
   world.registerSystem(GameLoopSystem);
   const gameLoop = world.getSystem(GameLoopSystem) as GameLoopSystem;
-  gameLoop.setRefs({ game, bow, arrows, targets, effects, environment, xrInput });
+  gameLoop.setRefs({ game, bow, arrows, targets, effects, environment, xrInput, cameraShake });
 
   // Set camera starting look direction (aim down range)
   if (world.camera) {

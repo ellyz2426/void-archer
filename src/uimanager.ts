@@ -28,6 +28,7 @@ export interface HUDData {
   powerUpLabel: string;
   powerUpActive: boolean;
   powerUpReady: boolean;
+  bossHP?: number;
 }
 
 export interface ResultsData {
@@ -158,6 +159,7 @@ export class UIManager {
       this.wireBtn(modesDoc, 'btn-endurance', () => this.gameRef?.handleUIAction('mode-endurance'));
       this.wireBtn(modesDoc, 'btn-challenge', () => this.gameRef?.handleUIAction('mode-challenge'));
       this.wireBtn(modesDoc, 'btn-zen', () => this.gameRef?.handleUIAction('mode-zen'));
+      this.wireBtn(modesDoc, 'btn-boss', () => this.gameRef?.handleUIAction('mode-boss'));
       this.wireBtn(modesDoc, 'btn-modes-back', () => this.gameRef?.handleUIAction('modes-back'));
     } else allWired = false;
 
@@ -263,6 +265,9 @@ export class UIManager {
     if (data.mode === 'zen') {
       this.setTextById(doc, 'hud-arrows', '--');
       this.setTextById(doc, 'hud-round', 'ZEN');
+    } else if (data.mode === 'boss_rush') {
+      this.setTextById(doc, 'hud-arrows', `HP: ${data.bossHP || '--'}`);
+      this.setTextById(doc, 'hud-round', `BOSS ${data.round}/${data.totalRounds}`);
     } else if (data.mode === 'timeattack') {
       this.setTextById(doc, 'hud-arrows', `${data.timeRemaining}s`);
       this.setTextById(doc, 'hud-round', 'TIME');
