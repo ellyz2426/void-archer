@@ -211,10 +211,10 @@ export class PowerUpSystem {
   getLabel(): string {
     if (this.isActive()) {
       const labels: Record<PowerUpType, string> = {
-        [PowerUpType.SLOW_MOTION]: '⏳ SLOW MO',
-        [PowerUpType.MULTISHOT]: '🔱 MULTI',
-        [PowerUpType.PRECISION]: '🎯 PRECISE',
-        [PowerUpType.EXPLOSIVE]: '💥 EXPLOSIVE',
+        [PowerUpType.SLOW_MOTION]: '<< SLOW MO',
+        [PowerUpType.MULTISHOT]: '||| MULTI',
+        [PowerUpType.PRECISION]: '(!) PRECISE',
+        [PowerUpType.EXPLOSIVE]: '* EXPLOSIVE',
       };
       return labels[this.activePowerUp!.type];
     }
@@ -222,10 +222,10 @@ export class PowerUpSystem {
       return `CD: ${Math.ceil(this.cooldown)}s`;
     }
     const nextLabels: Record<PowerUpType, string> = {
-      [PowerUpType.SLOW_MOTION]: '[GRIP] ⏳',
-      [PowerUpType.MULTISHOT]: '[GRIP] 🔱',
-      [PowerUpType.PRECISION]: '[GRIP] 🎯',
-      [PowerUpType.EXPLOSIVE]: '[GRIP] 💥',
+      [PowerUpType.SLOW_MOTION]: '[GRIP] <<',
+      [PowerUpType.MULTISHOT]: '[GRIP] |||',
+      [PowerUpType.PRECISION]: '[GRIP] (!)',
+      [PowerUpType.EXPLOSIVE]: '[GRIP] *',
     };
     return nextLabels[this.getNextType()];
   }

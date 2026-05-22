@@ -65,14 +65,16 @@
 </style>
 <div class="achiev-panel">
   <span class="achiev-title">ACHIEVEMENTS</span>
-  <span id="achiev-count" class="achiev-count">0 / 15 Unlocked</span>
-  <div id="ach-1" class="achiev-row"><span class="achiev-icon">🎯</span><span id="ach-name-1" class="achiev-name">First Shot</span><span id="ach-desc-1" class="achiev-desc">Hit your first target</span></div>
-  <div id="ach-2" class="achiev-row"><span class="achiev-icon">🔥</span><span id="ach-name-2" class="achiev-name">Hot Streak</span><span id="ach-desc-2" class="achiev-desc">5 consecutive hits</span></div>
-  <div id="ach-3" class="achiev-row"><span class="achiev-icon">💎</span><span id="ach-name-3" class="achiev-name">Bullseye Master</span><span id="ach-desc-3" class="achiev-desc">10 bullseyes in one game</span></div>
-  <div id="ach-4" class="achiev-row"><span class="achiev-icon">⚡</span><span id="ach-name-4" class="achiev-name">Speed Demon</span><span id="ach-desc-4" class="achiev-desc">Score 5000+ in Time Attack</span></div>
-  <div id="ach-5" class="achiev-row"><span class="achiev-icon">🛡️</span><span id="ach-name-5" class="achiev-name">Endurance King</span><span id="ach-desc-5" class="achiev-desc">Survive 50 targets in Endurance</span></div>
-  <div id="ach-6" class="achiev-row"><span class="achiev-icon">🏆</span><span id="ach-name-6" class="achiev-name">Perfect Round</span><span id="ach-desc-6" class="achiev-desc">All bullseyes in Target Range</span></div>
-  <div id="ach-7" class="achiev-row"><span class="achiev-icon">🌟</span><span id="ach-name-7" class="achiev-name">Sharpshooter</span><span id="ach-desc-7" class="achiev-desc">95%+ accuracy in any mode</span></div>
-  <div id="ach-8" class="achiev-row"><span class="achiev-icon">💥</span><span id="ach-name-8" class="achiev-name">Combo Master</span><span id="ach-desc-8" class="achiev-desc">Reach x5 combo multiplier</span></div>
+  <span id="achiev-count" class="achiev-count">0 / 25 Unlocked</span>
+  <div id="ach-1" class="achiev-row"><span class="achiev-icon">[HIT]</span><span id="ach-name-1" class="achiev-name">First Shot</span><span id="ach-desc-1" class="achiev-desc">Hit your first target</span></div>
+  <div id="ach-2" class="achiev-row"><span class="achiev-icon">[x5]</span><span id="ach-name-2" class="achiev-name">Hot Streak</span><span id="ach-desc-2" class="achiev-desc">5 consecutive hits</span></div>
+  <div id="ach-3" class="achiev-row"><span class="achiev-icon">[*]</span><span id="ach-name-3" class="achiev-name">Bullseye Master</span><span id="ach-desc-3" class="achiev-desc">10 bullseyes in one game</span></div>
+  <div id="ach-4" class="achiev-row"><span class="achiev-icon">[>>]</span><span id="ach-name-4" class="achiev-name">Speed Demon</span><span id="ach-desc-4" class="achiev-desc">Score 5000+ in Time Attack</span></div>
+  <div id="ach-5" class="achiev-row"><span class="achiev-icon">[+]</span><span id="ach-name-5" class="achiev-name">Endurance King</span><span id="ach-desc-5" class="achiev-desc">Survive 50 targets in Endurance</span></div>
+  <div id="ach-6" class="achiev-row"><span class="achiev-icon">[S]</span><span id="ach-name-6" class="achiev-name">Perfect Round</span><span id="ach-desc-6" class="achiev-desc">All bullseyes in Target Range</span></div>
+  <div id="ach-7" class="achiev-row"><span class="achiev-icon">[!]</span><span id="ach-name-7" class="achiev-name">Sharpshooter</span><span id="ach-desc-7" class="achiev-desc">95%+ accuracy in any mode</span></div>
+  <div id="ach-8" class="achiev-row"><span class="achiev-icon">[x5]</span><span id="ach-name-8" class="achiev-name">Combo Master</span><span id="ach-desc-8" class="achiev-desc">Reach x5 combo multiplier</span></div>
+  <div id="ach-9" class="achiev-row"><span class="achiev-icon">[C]</span><span id="ach-name-9" class="achiev-name">Challenge Clear</span><span id="ach-desc-9" class="achiev-desc">Complete a challenge round</span></div>
+  <div id="ach-10" class="achiev-row"><span class="achiev-icon">[V]</span><span id="ach-name-10" class="achiev-name">Void Master</span><span id="ach-desc-10" class="achiev-desc">Unlock all other achievements</span></div>
   <button id="btn-achiev-back" class="achiev-back" cursor="pointer">BACK</button>
 </div>

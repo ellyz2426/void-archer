@@ -151,6 +151,7 @@ export class UIManager {
       this.wireBtn(modesDoc, 'btn-skeet', () => this.gameRef?.handleUIAction('mode-skeet'));
       this.wireBtn(modesDoc, 'btn-timeattack', () => this.gameRef?.handleUIAction('mode-timeattack'));
       this.wireBtn(modesDoc, 'btn-endurance', () => this.gameRef?.handleUIAction('mode-endurance'));
+      this.wireBtn(modesDoc, 'btn-challenge', () => this.gameRef?.handleUIAction('mode-challenge'));
       this.wireBtn(modesDoc, 'btn-modes-back', () => this.gameRef?.handleUIAction('modes-back'));
     } else allWired = false;
 
@@ -237,8 +238,11 @@ export class UIManager {
       this.setTextById(doc, 'hud-arrows', `${data.timeRemaining}s`);
       this.setTextById(doc, 'hud-round', 'TIME');
     } else if (data.mode === 'endurance') {
-      this.setTextById(doc, 'hud-arrows', `♥${data.maxMisses - data.misses}`);
+      this.setTextById(doc, 'hud-arrows', `${data.maxMisses - data.misses} HP`);
       this.setTextById(doc, 'hud-round', 'ENDURE');
+    } else if (data.mode === 'challenge') {
+      this.setTextById(doc, 'hud-arrows', `${data.arrowsLeft} | ${data.timeRemaining}s`);
+      this.setTextById(doc, 'hud-round', `R${data.round}/${data.totalRounds}`);
     } else {
       this.setTextById(doc, 'hud-arrows', String(data.arrowsLeft));
       this.setTextById(doc, 'hud-round', `${data.round}/${data.totalRounds}`);

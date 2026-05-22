@@ -46,5 +46,5 @@
   <button id="btn-leaderboard" class="menu-button" cursor="pointer">LEADERBOARD</button>
   <button id="btn-achievements" class="menu-button" cursor="pointer">ACHIEVEMENTS</button>
   <button id="btn-settings" class="menu-button" cursor="pointer">SETTINGS</button>
-  <span class="version-text">v1.0 · IWSDK 0.4.1</span>
+  <span class="version-text">v1.1 | IWSDK 0.4.1</span>
 </div>

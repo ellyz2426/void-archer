@@ -29,6 +29,7 @@ export enum GameMode {
   SKEET = 'skeet',
   TIME_ATTACK = 'timeattack',
   ENDURANCE = 'endurance',
+  CHALLENGE = 'challenge',
 }
 
 export interface GameContext {
@@ -97,6 +98,16 @@ const MODE_CONFIGS: Record<GameMode, ModeConfig> = {
     targetTypes: [TargetType.STATIC, TargetType.MOVING, TargetType.OSCILLATING, TargetType.RISING],
     spawnInterval: 3.0,
     maxActiveTargets: 4,
+    windEnabled: true,
+  },
+  [GameMode.CHALLENGE]: {
+    totalRounds: 5,
+    arrowsPerRound: 5,
+    timeLimitSec: 30,
+    maxMisses: 1,
+    targetTypes: [TargetType.MOVING, TargetType.OSCILLATING, TargetType.RISING],
+    spawnInterval: 1.0,
+    maxActiveTargets: 6,
     windEnabled: true,
   },
 };
@@ -172,10 +183,17 @@ export class GameManager {
         this.ctx.audio.playTargetHit(hitResult.zone);
         this.ctx.effects.spawnHitEffect(hitResult.position, hitResult.zone);
 
+        // Combo chime for growing combos
+        const stats = this.ctx.scoring.getStats();
+        if (stats.currentCombo >= 3 && stats.currentCombo % 2 === 1) {
+          this.ctx.audio.playComboChime(Math.min(stats.currentCombo, 20));
+        }
+
         // Explosive power-up — nearby targets also take damage
         if (this.powerUps.isExplosive()) {
           this.ctx.targets.explosiveRadius(hitResult.position, 3);
           this.ctx.effects.spawnExplosion(hitResult.position);
+          this.ctx.audio.playExplosion();
         }
 
         this.ctx.ui.showHitFeedback(hitResult.zone, points);
@@ -419,6 +437,27 @@ export class GameManager {
         }
       }
     }
+
+    // Challenge: advance rounds by time or clearing all targets
+    if (this.mode === GameMode.CHALLENGE) {
+      if ((this.timeRemaining <= 0 || (this.arrowsLeft <= 0 && this.ctx.arrows.activeCount === 0)) && this.roundStarted) {
+        this.ctx.scoring.onRoundComplete();
+        if (this.currentRound >= this.modeConfig.totalRounds) {
+          this.endGame();
+        } else {
+          this.currentRound++;
+          this.arrowsLeft = this.modeConfig.arrowsPerRound;
+          this.timeRemaining = this.modeConfig.timeLimitSec;
+          this.roundTargetsSpawned = 0;
+          this.preRoundTimer = 2;
+          this.roundStarted = false;
+          this.ctx.targets.clearAll();
+          this.wind.setMaxStrength(2 + this.currentRound);
+          this.ctx.audio.playRoundAdvance();
+          this.ctx.ui.updateHUD(this.getHUDData());
+        }
+      }
+    }
   }
 
   getHUDData() {
@@ -450,6 +489,7 @@ export class GameManager {
       case 'mode-skeet': this.startGame(GameMode.SKEET); break;
       case 'mode-timeattack': this.startGame(GameMode.TIME_ATTACK); break;
       case 'mode-endurance': this.startGame(GameMode.ENDURANCE); break;
+      case 'mode-challenge': this.startGame(GameMode.CHALLENGE); break;
       case 'pause':
         if (this.state === GameState.PLAYING) this.setState(GameState.PAUSED);
         break;
@@ -481,6 +521,7 @@ export class GameManager {
         if (this.state === GameState.PLAYING) {
           if (this.powerUps.activate()) {
             this.ctx.audio.playPowerUp();
+            this.ctx.achievements.onPowerUpUsed();
           }
         }
         break;

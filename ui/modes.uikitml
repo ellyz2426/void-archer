@@ -15,65 +15,53 @@
     color: #00ffcc;
     font-weight: bold;
   }
-  .mode-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: rgba(0, 255, 204, 0.08);
-    border-color: #00997a;
-    border-width: 0.06;
-    border-radius: 1;
-    padding: 1.2;
-    padding-left: 3;
-    padding-right: 3;
-    cursor: pointer;
-    gap: 0.3;
+  .modes-subtitle {
+    font-size: 1.5;
+    color: #66aa99;
   }
-  .mode-row:hover {
-    background-color: rgba(0, 255, 204, 0.25);
-  }
-  .mode-name {
-    font-size: 2.2;
+  .mode-button {
+    font-size: 2;
     color: #ffffff;
-    font-weight: bold;
+    background-color: rgba(0, 255, 204, 0.12);
+    border-color: #00ffcc;
+    border-width: 0.06;
+    border-radius: 0.8;
+    padding: 1;
+    padding-left: 4;
+    padding-right: 4;
+    cursor: pointer;
+  }
+  .mode-button:hover {
+    background-color: rgba(0, 255, 204, 0.3);
   }
   .mode-desc {
-    font-size: 1.3;
-    color: #88ccbb;
+    font-size: 1.2;
+    color: #448877;
   }
   .back-button {
-    font-size: 2;
-    color: #ff6666;
-    background-color: rgba(255, 100, 100, 0.1);
-    border-color: #ff6666;
-    border-width: 0.06;
-    border-radius: 1;
+    font-size: 1.8;
+    color: #88aaaa;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: #446666;
+    border-width: 0.04;
+    border-radius: 0.8;
     padding: 0.8;
     padding-left: 3;
     padding-right: 3;
     cursor: pointer;
   }
-  .back-button:hover {
-    background-color: rgba(255, 100, 100, 0.3);
-  }
 </style>
 <div class="modes-panel">
   <span class="modes-title">SELECT MODE</span>
-  <div id="btn-range" class="mode-row" cursor="pointer">
-    <span class="mode-name">TARGET RANGE</span>
-    <span class="mode-desc">5 rounds · 10 arrows each · bullseye scoring</span>
-  </div>
-  <div id="btn-skeet" class="mode-row" cursor="pointer">
-    <span class="mode-name">SKEET SHOOT</span>
-    <span class="mode-desc">Moving targets · 3 rounds · lead your shots</span>
-  </div>
-  <div id="btn-timeattack" class="mode-row" cursor="pointer">
-    <span class="mode-name">TIME ATTACK</span>
-    <span class="mode-desc">90 seconds · unlimited arrows · score rush</span>
-  </div>
-  <div id="btn-endurance" class="mode-row" cursor="pointer">
-    <span class="mode-name">ENDURANCE</span>
-    <span class="mode-desc">Miss 3 targets · game over · survive the void</span>
-  </div>
+  <button id="btn-range" class="mode-button" cursor="pointer">TARGET RANGE</button>
+  <span class="mode-desc">5 rounds - static targets at increasing distance</span>
+  <button id="btn-skeet" class="mode-button" cursor="pointer">SKEET SHOOT</button>
+  <span class="mode-desc">Moving targets - wind affects trajectory</span>
+  <button id="btn-timeattack" class="mode-button" cursor="pointer">TIME ATTACK</button>
+  <span class="mode-desc">90 seconds - hit as many as you can</span>
+  <button id="btn-endurance" class="mode-button" cursor="pointer">ENDURANCE</button>
+  <span class="mode-desc">Survive - 3 misses and it's over</span>
+  <button id="btn-challenge" class="mode-button" cursor="pointer">CHALLENGE</button>
+  <span class="mode-desc">5 rounds - limited arrows, time, and one miss allowed</span>
   <button id="btn-modes-back" class="back-button" cursor="pointer">BACK</button>
 </div>

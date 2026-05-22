@@ -218,10 +218,18 @@ export class Environment {
       dec.mesh.rotation.z += dec.rotSpeed.z * dt;
     }
 
-    // Animate particles (gentle vertical bob)
+    // Animate particles (gentle vertical bob with color shimmer)
+    const t = performance.now() * 0.001;
     for (const p of this.ambientParticles) {
-      p.mesh.position.y = p.baseY + Math.sin(performance.now() * 0.001 + p.baseY * 2) * 0.3;
+      p.mesh.position.y = p.baseY + Math.sin(t + p.baseY * 2) * 0.3;
       p.mesh.position.x += p.vel.x * dt * 0.1;
+
+      // Color shimmer between cyan and purple
+      const shimmer = (Math.sin(t * 0.5 + p.baseY) + 1) * 0.5;
+      const mat = p.mesh.material as MeshBasicMaterial;
+      mat.color.setHex(shimmer > 0.5 ? 0x6644ff : 0x00ffcc);
+      mat.opacity = 0.2 + shimmer * 0.2;
+
       // Wrap around
       if (p.mesh.position.x > 15) p.mesh.position.x = -15;
       if (p.mesh.position.x < -15) p.mesh.position.x = 15;
