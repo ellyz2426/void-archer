@@ -8,10 +8,11 @@ import { LeaderboardManager } from './leaderboard';
 import { Environment } from './environment';
 import { BowController } from './bow';
 import { ArrowManager } from './arrow';
-import { TargetManager, TargetType } from './target';
+import { TargetManager, TargetType, HitZone } from './target';
 import { UIManager } from './uimanager';
 import { XRInputHandler } from './xrinput';
 import { WindSystem, PowerUpSystem } from './powerups';
+import { ThemeId, getAllThemes, saveSelectedTheme, getSelectedTheme } from './themes';
 
 export enum GameState {
   TITLE = 'title',
@@ -22,6 +23,7 @@ export enum GameState {
   LEADERBOARD = 'leaderboard',
   ACHIEVEMENTS = 'achievements',
   SETTINGS = 'settings',
+  STATS = 'stats',
 }
 
 export enum GameMode {
@@ -30,6 +32,7 @@ export enum GameMode {
   TIME_ATTACK = 'timeattack',
   ENDURANCE = 'endurance',
   CHALLENGE = 'challenge',
+  ZEN = 'zen',
 }
 
 export interface GameContext {
@@ -85,7 +88,7 @@ const MODE_CONFIGS: Record<GameMode, ModeConfig> = {
     arrowsPerRound: 999,
     timeLimitSec: 90,
     maxMisses: Infinity,
-    targetTypes: [TargetType.STATIC, TargetType.MOVING, TargetType.OSCILLATING],
+    targetTypes: [TargetType.STATIC, TargetType.MOVING, TargetType.OSCILLATING, TargetType.ARMORED],
     spawnInterval: 1.5,
     maxActiveTargets: 5,
     windEnabled: true,
@@ -95,7 +98,7 @@ const MODE_CONFIGS: Record<GameMode, ModeConfig> = {
     arrowsPerRound: 999,
     timeLimitSec: 0,
     maxMisses: 3,
-    targetTypes: [TargetType.STATIC, TargetType.MOVING, TargetType.OSCILLATING, TargetType.RISING],
+    targetTypes: [TargetType.STATIC, TargetType.MOVING, TargetType.OSCILLATING, TargetType.RISING, TargetType.SHRINKING, TargetType.PHANTOM],
     spawnInterval: 3.0,
     maxActiveTargets: 4,
     windEnabled: true,
@@ -109,6 +112,16 @@ const MODE_CONFIGS: Record<GameMode, ModeConfig> = {
     spawnInterval: 1.0,
     maxActiveTargets: 6,
     windEnabled: true,
+  },
+  [GameMode.ZEN]: {
+    totalRounds: 1,
+    arrowsPerRound: 999,
+    timeLimitSec: 0,
+    maxMisses: Infinity,
+    targetTypes: [TargetType.STATIC, TargetType.MOVING, TargetType.OSCILLATING, TargetType.SHRINKING, TargetType.PHANTOM],
+    spawnInterval: 3.0,
+    maxActiveTargets: 4,
+    windEnabled: false,
   },
 };
 
@@ -196,6 +209,20 @@ export class GameManager {
           this.ctx.audio.playExplosion();
         }
 
+        // New target-type specific achievements
+        if (hitResult.targetType === TargetType.PHANTOM) {
+          this.ctx.achievements.onPhantomKill();
+        }
+        if (hitResult.targetType === TargetType.ARMORED) {
+          this.ctx.achievements.onArmorKill();
+        }
+        if (hitResult.targetType === TargetType.SHRINKING && hitResult.zone === HitZone.BULLSEYE) {
+          this.ctx.achievements.onShrinkBullseye();
+        }
+        if (this.mode === GameMode.ZEN) {
+          this.ctx.achievements.onZenHit();
+        }
+
         this.ctx.ui.showHitFeedback(hitResult.zone, points);
         this.ctx.ui.updateHUD(this.getHUDData());
         this.ctx.achievements.checkHit(hitResult.zone, this.ctx.scoring);
@@ -269,6 +296,9 @@ export class GameManager {
     this.ctx.targets.clearAll();
     this.ctx.arrows.clearAll();
     this.ctx.audio.playGameStart();
+
+    // Track theme for achievements
+    this.ctx.achievements.onThemePlayed(getSelectedTheme());
 
     this.setState(GameState.PLAYING);
     this.ctx.ui.updateHUD(this.getHUDData());
@@ -481,6 +511,17 @@ export class GameManager {
     };
   }
 
+  private cycleTheme(dir: number) {
+    const themes = getAllThemes();
+    const currentId = getSelectedTheme();
+    const idx = themes.findIndex(t => t.id === currentId);
+    const nextIdx = (idx + dir + themes.length) % themes.length;
+    const newTheme = themes[nextIdx];
+    saveSelectedTheme(newTheme.id);
+    this.ctx.environment.applyTheme(newTheme.id);
+    this.ctx.ui.updateThemeLabel(newTheme.name);
+  }
+
   // Called by UI/input handlers
   handleUIAction(action: string) {
     switch (action) {
@@ -490,6 +531,7 @@ export class GameManager {
       case 'mode-timeattack': this.startGame(GameMode.TIME_ATTACK); break;
       case 'mode-endurance': this.startGame(GameMode.ENDURANCE); break;
       case 'mode-challenge': this.startGame(GameMode.CHALLENGE); break;
+      case 'mode-zen': this.startGame(GameMode.ZEN); break;
       case 'pause':
         if (this.state === GameState.PLAYING) this.setState(GameState.PAUSED);
         break;
@@ -511,11 +553,20 @@ export class GameManager {
       case 'settings':
         this.setState(GameState.SETTINGS);
         break;
+      case 'stats':
+        this.setState(GameState.STATS);
+        break;
       case 'back':
         this.setState(GameState.TITLE);
         break;
       case 'modes-back':
         this.setState(GameState.TITLE);
+        break;
+      case 'theme-next':
+        this.cycleTheme(1);
+        break;
+      case 'theme-prev':
+        this.cycleTheme(-1);
         break;
       case 'powerup':
         if (this.state === GameState.PLAYING) {

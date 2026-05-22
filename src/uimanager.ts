@@ -2,6 +2,7 @@
 import { World, PanelUI, PanelDocument, Follower, FollowBehavior, Vector3 } from '@iwsdk/core';
 import { GameState } from './game';
 import { HitZone } from './target';
+import { getThemeConfig } from './themes';
 
 type UIKitDocument = any; // Runtime type from PanelDocument
 
@@ -59,9 +60,9 @@ export class UIManager {
     await this.createWorldPanel('title', '/ui/title.json', 0, 1.6, -3, 1.2, 1.4);
 
     // Mode selection
-    await this.createWorldPanel('modes', '/ui/modes.json', 0, 1.6, -3, 1.2, 1.6);
+    await this.createWorldPanel('modes', '/ui/modes.json', 0, 1.6, -3, 1.2, 1.8);
 
-    // HUD — head-following with wider dimensions for new elements
+    // HUD
     await this.createHUDPanel('hud', '/ui/hud.json');
 
     // Pause menu
@@ -76,8 +77,11 @@ export class UIManager {
     // Achievements
     await this.createWorldPanel('achievements', '/ui/achievements.json', 0, 1.6, -3, 1.0, 1.6);
 
-    // Settings
-    await this.createWorldPanel('settings', '/ui/settings.json', 0, 1.6, -3, 1.0, 1.2);
+    // Settings (taller for theme picker)
+    await this.createWorldPanel('settings', '/ui/settings.json', 0, 1.6, -3, 1.0, 1.4);
+
+    // Stats
+    await this.createWorldPanel('stats', '/ui/stats.json', 0, 1.6, -3, 1.0, 1.4);
 
     // Wire up all button handlers
     this.wireButtons();
@@ -142,6 +146,7 @@ export class UIManager {
       this.wireBtn(titleDoc, 'btn-leaderboard', () => this.gameRef?.handleUIAction('leaderboard'));
       this.wireBtn(titleDoc, 'btn-achievements', () => this.gameRef?.handleUIAction('achievements'));
       this.wireBtn(titleDoc, 'btn-settings', () => this.gameRef?.handleUIAction('settings'));
+      this.wireBtn(titleDoc, 'btn-stats', () => this.gameRef?.handleUIAction('stats'));
     } else allWired = false;
 
     // Mode buttons
@@ -152,6 +157,7 @@ export class UIManager {
       this.wireBtn(modesDoc, 'btn-timeattack', () => this.gameRef?.handleUIAction('mode-timeattack'));
       this.wireBtn(modesDoc, 'btn-endurance', () => this.gameRef?.handleUIAction('mode-endurance'));
       this.wireBtn(modesDoc, 'btn-challenge', () => this.gameRef?.handleUIAction('mode-challenge'));
+      this.wireBtn(modesDoc, 'btn-zen', () => this.gameRef?.handleUIAction('mode-zen'));
       this.wireBtn(modesDoc, 'btn-modes-back', () => this.gameRef?.handleUIAction('modes-back'));
     } else allWired = false;
 
@@ -185,6 +191,14 @@ export class UIManager {
     const settingsDoc = this.getDoc('settings');
     if (settingsDoc) {
       this.wireBtn(settingsDoc, 'btn-settings-back', () => this.gameRef?.handleUIAction('back'));
+      this.wireBtn(settingsDoc, 'btn-theme-prev', () => this.gameRef?.handleUIAction('theme-prev'));
+      this.wireBtn(settingsDoc, 'btn-theme-next', () => this.gameRef?.handleUIAction('theme-next'));
+    } else allWired = false;
+
+    // Stats
+    const statsDoc = this.getDoc('stats');
+    if (statsDoc) {
+      this.wireBtn(statsDoc, 'btn-stats-back', () => this.gameRef?.handleUIAction('back'));
     } else allWired = false;
 
     this.buttonsWired = allWired;
@@ -213,6 +227,7 @@ export class UIManager {
       [GameState.LEADERBOARD]: ['leaderboard'],
       [GameState.ACHIEVEMENTS]: ['achievements'],
       [GameState.SETTINGS]: ['settings'],
+      [GameState.STATS]: ['stats'],
     };
 
     const toShow = panelMap[state] || [];
@@ -221,6 +236,17 @@ export class UIManager {
       if (panel) {
         panel.entity.object3D.visible = true;
       }
+    }
+
+    // Populate stats when showing stats panel
+    if (state === GameState.STATS) {
+      this.populateStats();
+    }
+
+    // Update theme label when showing settings
+    if (state === GameState.SETTINGS) {
+      const theme = getThemeConfig();
+      this.updateThemeLabel(theme.name);
     }
 
     // Re-try wiring if needed
@@ -234,7 +260,10 @@ export class UIManager {
     this.setTextById(doc, 'hud-score', String(data.score));
     this.setTextById(doc, 'hud-combo', data.multiplier > 1 ? `x${data.multiplier}` : 'x1');
 
-    if (data.mode === 'timeattack') {
+    if (data.mode === 'zen') {
+      this.setTextById(doc, 'hud-arrows', '--');
+      this.setTextById(doc, 'hud-round', 'ZEN');
+    } else if (data.mode === 'timeattack') {
       this.setTextById(doc, 'hud-arrows', `${data.timeRemaining}s`);
       this.setTextById(doc, 'hud-round', 'TIME');
     } else if (data.mode === 'endurance') {
@@ -259,7 +288,6 @@ export class UIManager {
     const doc = this.getDoc('hud');
     if (!doc) return;
 
-    // Flash the score text with points earned
     this.setTextById(doc, 'hud-score', `+${points}`);
     this.hitFeedbackTimer = 0.5;
   }
@@ -274,7 +302,44 @@ export class UIManager {
     this.setTextById(doc, 'results-combo', `x${data.bestCombo}`);
     this.setTextById(doc, 'results-bullseyes', String(data.bullseyes));
     this.setTextById(doc, 'results-streak', String(data.longestStreak));
-    this.setTextById(doc, 'results-new-best', data.isNewBest ? '★ NEW BEST! ★' : '');
+    this.setTextById(doc, 'results-new-best', data.isNewBest ? '* NEW BEST! *' : '');
+  }
+
+  updateThemeLabel(name: string) {
+    const doc = this.getDoc('settings');
+    if (!doc) return;
+    this.setTextById(doc, 'theme-name', name);
+  }
+
+  populateStats() {
+    const doc = this.getDoc('stats');
+    if (!doc) return;
+
+    // Read lifetime stats from scoring system (via game ref)
+    const scoring = this.gameRef?.ctx?.scoring;
+    const achievements = this.gameRef?.ctx?.achievements;
+    if (!scoring) return;
+
+    const lifetime = scoring.getLifetimeStats();
+    const playMinutes = Math.floor(lifetime.totalPlayTimeSec / 60);
+    const playHours = Math.floor(playMinutes / 60);
+    const playTimeStr = playHours > 0
+      ? `${playHours}h ${playMinutes % 60}m`
+      : `${playMinutes}m`;
+
+    this.setTextById(doc, 'stat-games', String(lifetime.totalGamesPlayed));
+    this.setTextById(doc, 'stat-playtime', playTimeStr);
+    this.setTextById(doc, 'stat-arrows', String(lifetime.totalArrowsFired));
+    this.setTextById(doc, 'stat-hits', String(lifetime.totalTargetsHit));
+    this.setTextById(doc, 'stat-bullseyes', String(lifetime.totalBullseyes));
+    this.setTextById(doc, 'stat-best-score', String(lifetime.allTimeBestScore));
+    this.setTextById(doc, 'stat-best-combo', `x${lifetime.allTimeBestCombo}`);
+
+    if (achievements) {
+      const total = achievements.getAll().length;
+      const unlocked = achievements.getUnlockedCount();
+      this.setTextById(doc, 'stat-achievements', `${unlocked}/${total}`);
+    }
   }
 
   private setTextById(doc: any, id: string, text: string) {

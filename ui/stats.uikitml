@@ -1,0 +1,111 @@
+<style>
+  .stats-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3;
+    gap: 1;
+    background-color: rgba(0, 4, 12, 0.92);
+    border-color: #00ffcc;
+    border-width: 0.15;
+    border-radius: 1.5;
+  }
+  .stats-title {
+    font-size: 3;
+    color: #00ffcc;
+    font-weight: bold;
+  }
+  .stats-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6;
+    width: 100%;
+    padding: 1 2;
+    background-color: rgba(0, 20, 20, 0.4);
+    border-radius: 0.8;
+  }
+  .stats-section-title {
+    font-size: 1.5;
+    color: #00aacc;
+    font-weight: bold;
+  }
+  .stat-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .stat-label {
+    font-size: 1.2;
+    color: #668888;
+  }
+  .stat-value {
+    font-size: 1.2;
+    color: #00ffcc;
+    font-weight: bold;
+  }
+  .stat-highlight {
+    font-size: 1.4;
+    color: #ffcc00;
+    font-weight: bold;
+  }
+  .back-btn {
+    padding: 0.8 2;
+    background-color: rgba(40, 20, 20, 0.5);
+    border-color: #ff4444;
+    border-width: 0.08;
+    border-radius: 0.8;
+    cursor: pointer;
+  }
+  .back-label {
+    font-size: 1.3;
+    color: #ff6666;
+  }
+</style>
+<div class="stats-panel">
+  <span class="stats-title">LIFETIME STATS</span>
+  <div class="stats-section">
+    <span class="stats-section-title">CAREER</span>
+    <div class="stat-row">
+      <span class="stat-label">Games Played</span>
+      <span id="stat-games" class="stat-value">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total Play Time</span>
+      <span id="stat-playtime" class="stat-value">0m</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Arrows Fired</span>
+      <span id="stat-arrows" class="stat-value">0</span>
+    </div>
+  </div>
+  <div class="stats-section">
+    <span class="stats-section-title">PRECISION</span>
+    <div class="stat-row">
+      <span class="stat-label">Targets Hit</span>
+      <span id="stat-hits" class="stat-value">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total Bullseyes</span>
+      <span id="stat-bullseyes" class="stat-value">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Achievements</span>
+      <span id="stat-achievements" class="stat-value">0/30</span>
+    </div>
+  </div>
+  <div class="stats-section">
+    <span class="stats-section-title">RECORDS</span>
+    <div class="stat-row">
+      <span class="stat-label">Best Score</span>
+      <span id="stat-best-score" class="stat-highlight">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Best Combo</span>
+      <span id="stat-best-combo" class="stat-highlight">x0</span>
+    </div>
+  </div>
+  <div id="btn-stats-back" class="back-btn" cursor="pointer">
+    <span class="back-label">BACK</span>
+  </div>
+</div>

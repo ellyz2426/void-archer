@@ -4,11 +4,11 @@
     flex-direction: column;
     align-items: center;
     padding: 4;
-    background-color: rgba(0, 0, 0, 0.9);
+    gap: 1.5;
+    background-color: rgba(0, 4, 12, 0.92);
     border-color: #00ffcc;
     border-width: 0.15;
-    border-radius: 2;
-    gap: 2;
+    border-radius: 1.5;
   }
   .title-text {
     font-size: 5;
@@ -16,35 +16,71 @@
     font-weight: bold;
   }
   .subtitle {
-    font-size: 2;
-    color: #66ffdd;
-  }
-  .menu-button {
-    font-size: 2.5;
-    color: #ffffff;
-    background-color: rgba(0, 255, 204, 0.15);
-    border-color: #00ffcc;
-    border-width: 0.08;
-    border-radius: 1;
-    padding: 1.2;
-    padding-left: 4;
-    padding-right: 4;
-    cursor: pointer;
-  }
-  .menu-button:hover {
-    background-color: rgba(0, 255, 204, 0.35);
+    font-size: 1.5;
+    color: #668888;
   }
   .version-text {
+    font-size: 0.9;
+    color: #445555;
+  }
+  .play-btn {
+    padding: 1.5 4;
+    background-color: rgba(0, 80, 60, 0.7);
+    border-color: #00ffcc;
+    border-width: 0.12;
+    border-radius: 1;
+    cursor: pointer;
+  }
+  .play-btn:hover {
+    background-color: rgba(0, 120, 90, 0.9);
+  }
+  .play-label {
+    font-size: 2.5;
+    color: #00ffcc;
+    font-weight: bold;
+  }
+  .menu-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1;
+  }
+  .menu-btn {
+    padding: 0.8 1.5;
+    background-color: rgba(0, 30, 30, 0.5);
+    border-color: #006666;
+    border-width: 0.06;
+    border-radius: 0.8;
+    cursor: pointer;
+  }
+  .menu-btn:hover {
+    background-color: rgba(0, 50, 50, 0.7);
+  }
+  .menu-label {
     font-size: 1.2;
-    color: #446655;
+    color: #00aaaa;
   }
 </style>
 <div class="title-panel">
   <span class="title-text">VOID ARCHER</span>
-  <span class="subtitle">Holodeck Archery Arena</span>
-  <button id="btn-play" class="menu-button" cursor="pointer">PLAY</button>
-  <button id="btn-leaderboard" class="menu-button" cursor="pointer">LEADERBOARD</button>
-  <button id="btn-achievements" class="menu-button" cursor="pointer">ACHIEVEMENTS</button>
-  <button id="btn-settings" class="menu-button" cursor="pointer">SETTINGS</button>
-  <span class="version-text">v1.1 | IWSDK 0.4.1</span>
+  <span class="subtitle">VR Archery in the Digital Void</span>
+  <div id="btn-play" class="play-btn" cursor="pointer">
+    <span class="play-label">PLAY</span>
+  </div>
+  <div class="menu-row">
+    <div id="btn-leaderboard" class="menu-btn" cursor="pointer">
+      <span class="menu-label">LEADERBOARD</span>
+    </div>
+    <div id="btn-achievements" class="menu-btn" cursor="pointer">
+      <span class="menu-label">ACHIEVEMENTS</span>
+    </div>
+  </div>
+  <div class="menu-row">
+    <div id="btn-stats" class="menu-btn" cursor="pointer">
+      <span class="menu-label">STATS</span>
+    </div>
+    <div id="btn-settings" class="menu-btn" cursor="pointer">
+      <span class="menu-label">SETTINGS</span>
+    </div>
+  </div>
+  <span class="version-text">v1.2</span>
 </div>

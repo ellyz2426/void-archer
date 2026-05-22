@@ -25,19 +25,25 @@ const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'no_miss', name: 'No Miss', description: 'Complete any mode without missing', icon: '[100]', unlocked: false },
   { id: 'triple_bullseye', name: 'Triple Bullseye', description: '3 bullseyes in a row', icon: '[3x]', unlocked: false },
   { id: 'marathon', name: 'Marathon', description: 'Play 10 games total', icon: '[10]', unlocked: false },
-  { id: 'all_modes', name: 'All Modes', description: 'Play every game mode', icon: '[4/4]', unlocked: false },
+  { id: 'all_modes', name: 'All Modes', description: 'Play every game mode', icon: '[6/6]', unlocked: false },
   { id: 'wind_master', name: 'Wind Master', description: 'Bullseye in strong wind', icon: '[W]', unlocked: false },
   { id: 'power_player', name: 'Power Player', description: 'Use 10 power-ups total', icon: '[PW]', unlocked: false },
   { id: 'distance_king', name: 'Distance King', description: 'Bullseye at 20m+ range', icon: '[FAR]', unlocked: false },
   { id: 'combo_legend', name: 'Combo Legend', description: '20 consecutive hits', icon: '[x20]', unlocked: false },
   { id: 'score_legend', name: 'Score Legend', description: 'Score 20,000 points', icon: '[20K]', unlocked: false },
   { id: 'void_master', name: 'Void Master', description: 'Unlock all other achievements', icon: '[V]', unlocked: false },
-  // New Round 3 achievements
+  // Round 3 achievements
   { id: 'challenge_clear', name: 'Challenge Clear', description: 'Complete a challenge round', icon: '[C]', unlocked: false },
   { id: 'headshot_ace', name: 'Headshot Ace', description: '5 bullseyes in under 10 seconds', icon: '[HS]', unlocked: false },
   { id: 'long_game', name: 'Long Game', description: 'Play for 5 minutes straight', icon: '[5M]', unlocked: false },
   { id: 'score_master', name: 'Score Master', description: 'Score 50,000 points total', icon: '[50K]', unlocked: false },
   { id: 'arrow_rain', name: 'Arrow Rain', description: 'Fire 100 arrows in one game', icon: '[100]', unlocked: false },
+  // Round 4 achievements
+  { id: 'phantom_hunter', name: 'Phantom Hunter', description: 'Destroy 10 phantom targets', icon: '[PH]', unlocked: false },
+  { id: 'armor_breaker', name: 'Armor Breaker', description: 'Destroy 10 armored targets', icon: '[AB]', unlocked: false },
+  { id: 'zen_archer', name: 'Zen Archer', description: 'Hit 30 targets in Zen mode', icon: '[ZN]', unlocked: false },
+  { id: 'theme_explorer', name: 'Theme Explorer', description: 'Play in all 4 environments', icon: '[4E]', unlocked: false },
+  { id: 'shrink_sniper', name: 'Shrink Sniper', description: 'Bullseye a shrinking target', icon: '[SS]', unlocked: false },
 ];
 
 export class AchievementManager {
@@ -45,8 +51,13 @@ export class AchievementManager {
   private consecutiveBullseyes = 0;
   private totalGames = 0;
   private modesPlayed = new Set<string>();
+  private themesPlayed = new Set<string>();
   private totalMovingHits = 0;
   private powerUpsUsed = 0;
+  private phantomKills = 0;
+  private armorKills = 0;
+  private zenHits = 0;
+  private shrinkBullseyes = 0;
   private fastBullseyeCount = 0;
   private fastBullseyeTimer = 0;
   private storageKey = 'void-archer-achievements';
@@ -71,8 +82,13 @@ export class AchievementManager {
         const s = JSON.parse(stats);
         this.totalGames = s.totalGames || 0;
         this.modesPlayed = new Set(s.modesPlayed || []);
+        this.themesPlayed = new Set(s.themesPlayed || []);
         this.totalMovingHits = s.totalMovingHits || 0;
         this.powerUpsUsed = s.powerUpsUsed || 0;
+        this.phantomKills = s.phantomKills || 0;
+        this.armorKills = s.armorKills || 0;
+        this.zenHits = s.zenHits || 0;
+        this.shrinkBullseyes = s.shrinkBullseyes || 0;
       }
     } catch {}
   }
@@ -83,8 +99,13 @@ export class AchievementManager {
     localStorage.setItem(this.statsKey, JSON.stringify({
       totalGames: this.totalGames,
       modesPlayed: [...this.modesPlayed],
+      themesPlayed: [...this.themesPlayed],
       totalMovingHits: this.totalMovingHits,
       powerUpsUsed: this.powerUpsUsed,
+      phantomKills: this.phantomKills,
+      armorKills: this.armorKills,
+      zenHits: this.zenHits,
+      shrinkBullseyes: this.shrinkBullseyes,
     }));
   }
 
@@ -101,6 +122,36 @@ export class AchievementManager {
   onPowerUpUsed() {
     this.powerUpsUsed++;
     if (this.powerUpsUsed >= 10) this.unlock('power_player');
+    this.save();
+  }
+
+  onThemePlayed(themeId: string) {
+    this.themesPlayed.add(themeId);
+    if (this.themesPlayed.size >= 4) this.unlock('theme_explorer');
+    this.save();
+  }
+
+  onPhantomKill() {
+    this.phantomKills++;
+    if (this.phantomKills >= 10) this.unlock('phantom_hunter');
+    this.save();
+  }
+
+  onArmorKill() {
+    this.armorKills++;
+    if (this.armorKills >= 10) this.unlock('armor_breaker');
+    this.save();
+  }
+
+  onZenHit() {
+    this.zenHits++;
+    if (this.zenHits >= 30) this.unlock('zen_archer');
+    this.save();
+  }
+
+  onShrinkBullseye() {
+    this.shrinkBullseyes++;
+    if (this.shrinkBullseyes >= 1) this.unlock('shrink_sniper');
     this.save();
   }
 
@@ -155,11 +206,14 @@ export class AchievementManager {
       this.unlock('perfect_round');
     }
 
+    // Challenge clear
+    if (mode === GameMode.CHALLENGE) this.unlock('challenge_clear');
+
     // Marathon
     if (this.totalGames >= 10) this.unlock('marathon');
 
-    // All modes
-    if (this.modesPlayed.size >= 4) this.unlock('all_modes');
+    // All modes (now 6 with zen)
+    if (this.modesPlayed.size >= 6) this.unlock('all_modes');
 
     // Arrow rain
     if (stats.totalHits + stats.totalMisses >= 100) this.unlock('arrow_rain');
