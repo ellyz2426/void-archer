@@ -17,6 +17,7 @@ interface ActiveArrow {
   age: number;
   maxAge: number;
   active: boolean;
+  windForce: Vector3;
 }
 
 export class ArrowManager {
@@ -85,6 +86,23 @@ export class ArrowManager {
     glow.position.z = -0.28;
     group.add(glow);
 
+    // Fletching (back feathers — thin triangles)
+    const fletchMat = new MeshBasicMaterial({
+      color: 0x00ffcc,
+      transparent: true,
+      opacity: 0.5,
+      blending: AdditiveBlending,
+    });
+    for (let i = 0; i < 3; i++) {
+      const angle = (i * Math.PI * 2) / 3;
+      const fletch = new Mesh(new ConeGeometry(0.01, 0.06, 3), fletchMat);
+      fletch.rotation.x = Math.PI / 2;
+      fletch.position.z = 0.22;
+      fletch.position.x = Math.cos(angle) * 0.015;
+      fletch.position.y = Math.sin(angle) * 0.015;
+      group.add(fletch);
+    }
+
     group.visible = false;
     this.world.scene.add(group);
 
@@ -110,10 +128,11 @@ export class ArrowManager {
       age: 0,
       maxAge: 5,
       active: false,
+      windForce: new Vector3(),
     };
   }
 
-  spawnArrow(origin: Vector3, direction: Vector3, power: number) {
+  spawnArrow(origin: Vector3, direction: Vector3, power: number, windForce?: Vector3) {
     let arrow = this.arrowPool.find(a => !a.active);
     if (!arrow) {
       arrow = this.createArrow();
@@ -130,6 +149,7 @@ export class ArrowManager {
     arrow.group.visible = true;
     arrow.group.position.copy(origin);
     arrow.trailMesh.visible = true;
+    arrow.windForce.copy(windForce || new Vector3());
 
     // Orient arrow along velocity
     this.orientArrow(arrow);
@@ -175,8 +195,10 @@ export class ArrowManager {
       // Apply gravity
       arrow.velocity.y -= this.gravity * dt;
 
+      // Apply wind force (wind affects trajectory over time)
+      arrow.velocity.add(arrow.windForce.clone().multiplyScalar(dt));
+
       // Move arrow
-      const prevPos = arrow.position.clone();
       arrow.position.add(arrow.velocity.clone().multiplyScalar(dt));
       arrow.group.position.copy(arrow.position);
 

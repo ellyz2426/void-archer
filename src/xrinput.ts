@@ -1,5 +1,5 @@
-// XR Controller input handler
-import { World, Vector3, Quaternion } from '@iwsdk/core';
+// XR Controller input handler — uses IWSDK InputComponent API
+import { World, Vector3, Quaternion, InputComponent } from '@iwsdk/core';
 
 export class XRInputHandler {
   private world: World;
@@ -14,10 +14,14 @@ export class XRInputHandler {
   bDown = false;
   thumbstick = { x: 0, y: 0 };
 
+  // Left controller state (for two-handed bow)
+  leftGripPressed = false;
+
   // Keyboard state (browser fallback)
   escapeDown = false;
   spaceDown = false;
   private escapeJustPressed = false;
+  private keys = new Set<string>();
 
   constructor(world: World) {
     this.world = world;
@@ -26,6 +30,7 @@ export class XRInputHandler {
 
   private setupKeyboard() {
     document.addEventListener('keydown', (e) => {
+      this.keys.add(e.key);
       if (e.key === 'Escape' && !this.escapeDown) {
         this.escapeDown = true;
         this.escapeJustPressed = true;
@@ -33,9 +38,14 @@ export class XRInputHandler {
       if (e.key === ' ') this.spaceDown = true;
     });
     document.addEventListener('keyup', (e) => {
+      this.keys.delete(e.key);
       if (e.key === 'Escape') this.escapeDown = false;
       if (e.key === ' ') this.spaceDown = false;
     });
+  }
+
+  isKeyPressed(key: string): boolean {
+    return this.keys.has(key);
   }
 
   consumeEscape(): boolean {
@@ -46,7 +56,7 @@ export class XRInputHandler {
     return false;
   }
 
-  update(dt: number) {
+  update(_dt: number) {
     const xr = (this.world.input as any).xr;
     if (!xr?.gamepads?.right) {
       this.triggerDown = false;
@@ -56,24 +66,32 @@ export class XRInputHandler {
       this.gripPressed = false;
       this.aDown = false;
       this.bDown = false;
+      this.leftGripPressed = false;
       this.thumbstick = { x: 0, y: 0 };
       return;
     }
 
-    const gp = xr.gamepads.right;
+    const rightGP = xr.gamepads.right;
 
-    this.triggerDown = gp.getButtonDown?.(0) ?? false;
-    this.triggerPressed = gp.getButtonPressed?.(0) ?? false;
-    this.triggerUp = gp.getButtonUp?.(0) ?? false;
+    // Use InputComponent enum for correct button mapping
+    this.triggerDown = rightGP.getButtonDown?.(InputComponent.Trigger) ?? false;
+    this.triggerPressed = rightGP.getButtonPressed?.(InputComponent.Trigger) ?? false;
+    this.triggerUp = rightGP.getButtonUp?.(InputComponent.Trigger) ?? false;
 
-    this.gripDown = gp.getButtonDown?.(1) ?? false;
-    this.gripPressed = gp.getButtonPressed?.(1) ?? false;
+    this.gripDown = rightGP.getButtonDown?.(InputComponent.Squeeze) ?? false;
+    this.gripPressed = rightGP.getButtonPressed?.(InputComponent.Squeeze) ?? false;
 
-    this.aDown = gp.getButtonDown?.(3) ?? false;
-    this.bDown = gp.getButtonDown?.(4) ?? false;
+    this.aDown = rightGP.getButtonDown?.(InputComponent.A_Button) ?? false;
+    this.bDown = rightGP.getButtonDown?.(InputComponent.B_Button) ?? false;
 
-    const axes = gp.getAxesValues?.(2);
+    const axes = rightGP.getAxesValues?.(InputComponent.Thumbstick);
     this.thumbstick = axes ? { x: axes.x || 0, y: axes.y || 0 } : { x: 0, y: 0 };
+
+    // Left controller grip for two-handed bow mechanic
+    const leftGP = xr.gamepads?.left;
+    if (leftGP) {
+      this.leftGripPressed = leftGP.getButtonPressed?.(InputComponent.Squeeze) ?? false;
+    }
   }
 
   isXRActive(): boolean {
@@ -92,5 +110,11 @@ export class XRInputHandler {
     if (!spaces?.raySpaces?.right) return null;
     const q = spaces.raySpaces.right.object3D.getWorldQuaternion(new Quaternion());
     return new Vector3(0, 0, -1).applyQuaternion(q);
+  }
+
+  getLeftControllerPosition(): Vector3 | null {
+    const spaces = (this.world as any).playerSpaceEntities;
+    if (!spaces?.gripSpaces?.left) return null;
+    return spaces.gripSpaces.left.object3D.getWorldPosition(new Vector3());
   }
 }

@@ -26,6 +26,11 @@ const ACHIEVEMENT_DEFS: Achievement[] = [
   { id: 'triple_bullseye', name: 'Triple Bullseye', description: '3 bullseyes in a row', icon: '🎪', unlocked: false },
   { id: 'marathon', name: 'Marathon', description: 'Play 10 games total', icon: '🏃', unlocked: false },
   { id: 'all_modes', name: 'All Modes', description: 'Play every game mode', icon: '📋', unlocked: false },
+  { id: 'wind_master', name: 'Wind Master', description: 'Bullseye in strong wind', icon: '🌪️', unlocked: false },
+  { id: 'power_player', name: 'Power Player', description: 'Use 10 power-ups total', icon: '⚡', unlocked: false },
+  { id: 'distance_king', name: 'Distance King', description: 'Bullseye at 20m+ range', icon: '🏹', unlocked: false },
+  { id: 'combo_legend', name: 'Combo Legend', description: '20 consecutive hits', icon: '🔥', unlocked: false },
+  { id: 'score_legend', name: 'Score Legend', description: 'Score 20,000 points', icon: '💰', unlocked: false },
   { id: 'void_master', name: 'Void Master', description: 'Unlock all other achievements', icon: '🌀', unlocked: false },
 ];
 
@@ -100,6 +105,10 @@ export class AchievementManager {
 
     // Score
     if (stats.totalScore >= 10000) this.unlock('centurion');
+    if (stats.totalScore >= 20000) this.unlock('score_legend');
+
+    // Combo legend
+    if (stats.currentCombo >= 20) this.unlock('combo_legend');
   }
 
   checkGameEnd(mode: GameMode, stats: GameStats) {

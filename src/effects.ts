@@ -138,6 +138,35 @@ export class EffectsManager {
     }
   }
 
+  spawnExplosion(position: Vector3) {
+    // Big explosion burst
+    for (let i = 0; i < 40; i++) {
+      const p = this.getParticle();
+      if (!p) break;
+
+      p.active = true;
+      p.life = 0;
+      p.maxLife = 0.6 + Math.random() * 0.8;
+      p.mesh.position.copy(position);
+      p.mesh.visible = true;
+
+      const dir = new Vector3(
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+      ).normalize();
+      p.velocity.copy(dir.multiplyScalar(4 + Math.random() * 6));
+
+      // Fire colors: orange, yellow, red
+      const colors = [0xff4400, 0xffaa00, 0xff6600, 0xffcc00, 0xff2200];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      (p.mesh.material as MeshBasicMaterial).color.setHex(color);
+      p.mesh.scale.setScalar(2 + Math.random() * 2);
+
+      if (!this.particles.includes(p)) this.particles.push(p);
+    }
+  }
+
   update(dt: number) {
     for (const p of this.particles) {
       if (!p.active) continue;

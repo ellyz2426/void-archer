@@ -2,12 +2,12 @@
   .results-panel {
     display: flex;
     flex-direction: column;
-    align-items: center;
     padding: 3;
-    background-color: rgba(0, 0, 0, 0.95);
+    background-color: rgba(0, 0, 0, 0.85);
     border-color: #00ffcc;
-    border-width: 0.15;
-    border-radius: 2;
+    border-width: 0.1;
+    border-radius: 1.5;
+    align-items: center;
     gap: 1.5;
   }
   .results-title {
@@ -15,69 +15,90 @@
     color: #00ffcc;
     font-weight: bold;
   }
-  .stat-row {
-    display: flex;
-    flex-direction: row;
-    gap: 2;
-    align-items: center;
-  }
-  .stat-label {
-    font-size: 1.8;
-    color: #88ccbb;
-  }
-  .stat-value {
-    font-size: 2.2;
-    color: #ffffff;
-    font-weight: bold;
-  }
-  .final-score {
-    font-size: 5;
-    color: #ffcc00;
-    font-weight: bold;
-  }
   .grade-text {
-    font-size: 3;
-    color: #ff8866;
+    font-size: 8;
     font-weight: bold;
   }
-  .result-button {
-    font-size: 2.2;
+  .score-text {
+    font-size: 5;
     color: #ffffff;
-    background-color: rgba(0, 255, 204, 0.15);
-    border-color: #00ffcc;
-    border-width: 0.08;
-    border-radius: 1;
-    padding: 1;
-    padding-left: 3;
-    padding-right: 3;
-    cursor: pointer;
-  }
-  .result-button:hover {
-    background-color: rgba(0, 255, 204, 0.35);
+    font-weight: bold;
   }
   .new-best {
     font-size: 2;
     color: #ffcc00;
     font-weight: bold;
   }
+  .stats-row {
+    display: flex;
+    flex-direction: row;
+    gap: 4;
+    align-items: center;
+  }
+  .stat-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3;
+  }
+  .stat-label {
+    font-size: 1.5;
+    color: #66aa99;
+  }
+  .stat-value {
+    font-size: 2.5;
+    color: #00ffcc;
+    font-weight: bold;
+  }
+  .btn-row {
+    display: flex;
+    flex-direction: row;
+    gap: 2;
+    margin-top: 1;
+  }
+  .btn {
+    padding: 1 3;
+    background-color: rgba(0, 255, 204, 0.15);
+    border-color: #00ffcc;
+    border-width: 0.08;
+    border-radius: 0.8;
+    cursor: pointer;
+  }
+  .btn-text {
+    font-size: 2;
+    color: #00ffcc;
+    font-weight: bold;
+  }
 </style>
 <div class="results-panel">
-  <span class="results-title">ROUND COMPLETE</span>
+  <span class="results-title">MISSION COMPLETE</span>
   <span id="results-grade" class="grade-text">A</span>
-  <span id="results-final-score" class="final-score">0</span>
-  <div class="stat-row">
-    <span class="stat-label">Accuracy:</span>
-    <span id="results-accuracy" class="stat-value">0%</span>
-  </div>
-  <div class="stat-row">
-    <span class="stat-label">Best Combo:</span>
-    <span id="results-combo" class="stat-value">x0</span>
-  </div>
-  <div class="stat-row">
-    <span class="stat-label">Bullseyes:</span>
-    <span id="results-bullseyes" class="stat-value">0</span>
-  </div>
+  <span id="results-final-score" class="score-text">0</span>
   <span id="results-new-best" class="new-best"></span>
-  <button id="btn-retry" class="result-button" cursor="pointer">RETRY</button>
-  <button id="btn-results-back" class="result-button" cursor="pointer">MENU</button>
+  <div class="stats-row">
+    <div class="stat-block">
+      <span class="stat-label">ACCURACY</span>
+      <span id="results-accuracy" class="stat-value">0%</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">COMBO</span>
+      <span id="results-combo" class="stat-value">x1</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">BULLSEYES</span>
+      <span id="results-bullseyes" class="stat-value">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">STREAK</span>
+      <span id="results-streak" class="stat-value">0</span>
+    </div>
+  </div>
+  <div class="btn-row">
+    <div id="btn-retry" class="btn">
+      <span class="btn-text">RETRY</span>
+    </div>
+    <div id="btn-results-back" class="btn">
+      <span class="btn-text">MENU</span>
+    </div>
+  </div>
 </div>

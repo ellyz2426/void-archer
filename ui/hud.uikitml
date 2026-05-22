@@ -3,11 +3,11 @@
     display: flex;
     flex-direction: row;
     padding: 1;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.75);
     border-color: #00ffcc;
     border-width: 0.06;
     border-radius: 0.8;
-    gap: 2;
+    gap: 1.5;
     align-items: center;
   }
   .hud-block {
@@ -17,33 +17,48 @@
     gap: 0.1;
   }
   .hud-label {
-    font-size: 1;
+    font-size: 0.9;
     color: #66aa99;
   }
   .hud-value {
-    font-size: 2.5;
+    font-size: 2.2;
     color: #00ffcc;
     font-weight: bold;
   }
   .combo-value {
-    font-size: 2.5;
+    font-size: 2.2;
     color: #ffcc00;
     font-weight: bold;
   }
   .arrows-value {
-    font-size: 2.5;
+    font-size: 2.2;
     color: #ff8866;
     font-weight: bold;
   }
   .time-value {
-    font-size: 2.5;
+    font-size: 2.2;
     color: #66ccff;
+    font-weight: bold;
+  }
+  .wind-value {
+    font-size: 1.8;
+    color: #88bbff;
+    font-weight: bold;
+  }
+  .powerup-value {
+    font-size: 1.5;
+    color: #ffaa00;
+    font-weight: bold;
+  }
+  .powerup-ready {
+    font-size: 1.5;
+    color: #00ff66;
     font-weight: bold;
   }
   .divider {
     background-color: rgba(0, 255, 204, 0.3);
-    width: 0.05;
-    height: 4;
+    width: 0.04;
+    height: 3.5;
   }
 </style>
 <div class="hud-panel">
@@ -65,5 +80,15 @@
   <div class="hud-block">
     <span class="hud-label">ROUND</span>
     <span id="hud-round" class="time-value">1/5</span>
+  </div>
+  <div class="divider"></div>
+  <div class="hud-block">
+    <span class="hud-label">WIND</span>
+    <span id="hud-wind" class="wind-value">CALM ·</span>
+  </div>
+  <div class="divider"></div>
+  <div class="hud-block">
+    <span class="hud-label">POWER</span>
+    <span id="hud-powerup" class="powerup-ready">[GRIP]</span>
   </div>
 </div>

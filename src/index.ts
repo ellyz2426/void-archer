@@ -1,5 +1,5 @@
 // Void Archer VR — Entry Point
-import { World } from '@iwsdk/core';
+import { World, createSystem } from '@iwsdk/core';
 import { GameManager, GameState } from './game';
 import { Environment } from './environment';
 import { BowController } from './bow';
@@ -13,24 +13,88 @@ import { EffectsManager } from './effects';
 import { AchievementManager } from './achievements';
 import { LeaderboardManager } from './leaderboard';
 
-async function main() {
-  const container = document.getElementById('scene-container')!;
+// ECS System for per-frame game loop — the correct IWSDK pattern
+class GameLoopSystem extends createSystem() {
+  private game!: GameManager;
+  private bow!: BowController;
+  private arrows!: ArrowManager;
+  private targets!: TargetManager;
+  private effects!: EffectsManager;
+  private environment!: Environment;
+  private xrInput!: XRInputHandler;
+  private lastTime = 0;
 
+  init() {
+    this.lastTime = performance.now();
+  }
+
+  setRefs(refs: {
+    game: GameManager;
+    bow: BowController;
+    arrows: ArrowManager;
+    targets: TargetManager;
+    effects: EffectsManager;
+    environment: Environment;
+    xrInput: XRInputHandler;
+  }) {
+    this.game = refs.game;
+    this.bow = refs.bow;
+    this.arrows = refs.arrows;
+    this.targets = refs.targets;
+    this.effects = refs.effects;
+    this.environment = refs.environment;
+    this.xrInput = refs.xrInput;
+  }
+
+  update(_delta: number, _time: number) {
+    if (!this.game) return;
+
+    const now = performance.now();
+    const dt = Math.min((now - this.lastTime) / 1000, 0.1);
+    this.lastTime = now;
+
+    // Handle pause toggle
+    if (this.xrInput.consumeEscape() || this.xrInput.bDown) {
+      if (this.game.state === GameState.PLAYING) {
+        this.game.handleUIAction('pause');
+      } else if (this.game.state === GameState.PAUSED) {
+        this.game.handleUIAction('resume');
+      }
+    }
+
+    // Grip button → activate power-up
+    if (this.xrInput.gripDown && this.game.state === GameState.PLAYING) {
+      this.game.handleUIAction('powerup');
+    }
+
+    this.game.update(dt);
+    this.bow.update(dt);
+    this.arrows.update(dt);
+    this.targets.update(dt);
+    this.effects.update(dt);
+    this.environment.update(dt);
+    this.xrInput.update(dt);
+  }
+}
+
+async function main() {
+  const container = document.getElementById('scene-container') as HTMLDivElement;
+
+  // Runtime options include camera and browserControls accepted by IWSDK 0.4.1
+  // but not yet in the strict TypeScript definitions
   const world = await World.create(container, {
     xr: { offer: 'once' },
-    input: { canvasPointerEvents: true },
     render: {
       near: 0.01,
       far: 200,
-      camera: { position: [0, 1.7, 0], lookAt: [0, 1.65, -5] },
     },
     features: {
       grabbing: true,
-      locomotion: { browserControls: true },
+      locomotion: true,
       physics: true,
       spatialUI: true,
     },
-  });
+  } as any);
 
   // Initialize managers
   const audio = new AudioManager();
@@ -59,30 +123,15 @@ async function main() {
   game.setState(GameState.TITLE);
   audio.playAmbient();
 
-  // Main game loop
-  let lastTime = performance.now();
-  world.onUpdate(() => {
-    const now = performance.now();
-    const dt = Math.min((now - lastTime) / 1000, 0.1);
-    lastTime = now;
+  // Register the game loop as a proper ECS system
+  world.registerSystem(GameLoopSystem);
+  const gameLoop = world.getSystem(GameLoopSystem) as GameLoopSystem;
+  gameLoop.setRefs({ game, bow, arrows, targets, effects, environment, xrInput });
 
-    // Handle pause toggle
-    if (xrInput.consumeEscape() || xrInput.bDown) {
-      if (game.state === GameState.PLAYING) {
-        game.handleUIAction('pause');
-      } else if (game.state === GameState.PAUSED) {
-        game.handleUIAction('resume');
-      }
-    }
-
-    game.update(dt);
-    bow.update(dt);
-    arrows.update(dt);
-    targets.update(dt);
-    effects.update(dt);
-    environment.update(dt);
-    xrInput.update(dt);
-  });
+  // Set camera starting look direction (aim down range)
+  if (world.camera) {
+    world.camera.lookAt(0, 1.65, -5);
+  }
 }
 
 main().catch(console.error);

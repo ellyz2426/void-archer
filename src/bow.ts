@@ -3,7 +3,7 @@ import {
   World, Mesh, Group, CylinderGeometry, SphereGeometry,
   MeshStandardMaterial, MeshBasicMaterial, LineBasicMaterial,
   Color, Vector3, Quaternion, BufferGeometry, Float32BufferAttribute,
-  LineSegments, AdditiveBlending,
+  LineSegments, AdditiveBlending, InputComponent,
 } from '@iwsdk/core';
 import { AudioManager } from './audio';
 
@@ -11,7 +11,6 @@ export class BowController {
   private world: World;
   private audio: AudioManager;
   private bowGroup: Group;
-  private bowEntity: any;
   private aimLine: LineSegments;
   private drawIndicator: Mesh;
 
@@ -27,6 +26,9 @@ export class BowController {
   private mouseX = 0;
   private mouseY = 0;
   private canvasRect: DOMRect | null = null;
+
+  // Haptic feedback tracking
+  private lastHapticPower = 0;
 
   onFire: ((origin: Vector3, direction: Vector3, power: number) => void) | null = null;
 
@@ -69,7 +71,7 @@ export class BowController {
   private createBowMesh() {
     const scene = this.world.scene;
 
-    // Bow limbs (curved cylinders)
+    // Bow limbs (curved cylinders) with energy glow
     const limbMat = new MeshStandardMaterial({
       color: 0x00ffcc,
       emissive: 0x004433,
@@ -107,6 +109,17 @@ export class BowController {
     const bowstring = new LineSegments(stringGeo, stringMat);
     this.bowGroup.add(bowstring);
 
+    // Energy orb at center (visible when drawing)
+    const orbMat = new MeshBasicMaterial({
+      color: 0x00ffcc,
+      transparent: true,
+      opacity: 0,
+      blending: AdditiveBlending,
+    });
+    const orb = new Mesh(new SphereGeometry(0.04, 12, 12), orbMat);
+    orb.name = 'energy-orb';
+    this.bowGroup.add(orb);
+
     this.bowGroup.visible = false;
     this.bowGroup.position.set(-0.3, 1.3, -0.3);
     scene.add(this.bowGroup);
@@ -118,6 +131,7 @@ export class BowController {
 
     canvas.addEventListener('mousedown', (e: MouseEvent) => {
       if (!this.isActive) return;
+      if (e.button !== 0) return; // left click only
       this.mouseDown = true;
       this.isDrawing = true;
       this.drawPower = 0;
@@ -163,38 +177,33 @@ export class BowController {
     const nx = ((this.mouseX - this.canvasRect.left) / this.canvasRect.width) * 2 - 1;
     const ny = -((this.mouseY - this.canvasRect.top) / this.canvasRect.height) * 2 + 1;
 
-    // Simple raycasting from camera
-    const camera = (this.world as any).camera || (this.world as any).renderer?.xr?.getCamera?.();
-    if (!camera) {
+    // Use camera for raycasting when available
+    const camera = this.world.camera;
+    if (camera) {
+      // Project mouse position through camera
+      const dir = new Vector3(nx, ny, 0.5).unproject(camera);
+      dir.sub(camera.position).normalize();
+      this.aimOrigin.copy(camera.position);
+      this.aimDirection.copy(dir);
+    } else {
       // Fallback: aim based on mouse offset
       this.aimDirection.set(nx * 0.5, ny * 0.3 + 0.05, -1).normalize();
-      return;
     }
-
-    // Use camera projection
-    this.aimDirection.set(nx * 0.5, ny * 0.3 + 0.05, -1).normalize();
   }
 
   private updateAimFromXR() {
-    const xr = (this.world.input as any).xr;
-    if (!xr) return;
-
-    const rightController = xr.gamepads?.right;
-    if (!rightController) return;
-
-    // Get controller position and direction from player space
     const spaces = (this.world as any).playerSpaceEntities;
-    if (spaces?.raySpaces?.right) {
-      const raySpace = spaces.raySpaces.right;
-      const pos = raySpace.object3D.getWorldPosition(new Vector3());
-      const dir = new Vector3(0, 0, -1).applyQuaternion(raySpace.object3D.getWorldQuaternion(new Quaternion()));
-      this.aimOrigin.copy(pos);
-      this.aimDirection.copy(dir);
+    if (!spaces?.raySpaces?.right) return;
 
-      // Update bow position to match controller
-      this.bowGroup.position.copy(pos);
-      this.bowGroup.quaternion.copy(raySpace.object3D.getWorldQuaternion(new Quaternion()));
-    }
+    const raySpace = spaces.raySpaces.right;
+    const pos = raySpace.object3D.getWorldPosition(new Vector3());
+    const dir = new Vector3(0, 0, -1).applyQuaternion(raySpace.object3D.getWorldQuaternion(new Quaternion()));
+    this.aimOrigin.copy(pos);
+    this.aimDirection.copy(dir);
+
+    // Update bow position to match controller
+    this.bowGroup.position.copy(pos);
+    this.bowGroup.quaternion.copy(raySpace.object3D.getWorldQuaternion(new Quaternion()));
   }
 
   private updateAimLine() {
@@ -233,6 +242,10 @@ export class BowController {
     }
     (attr as any).needsUpdate = true;
     geo.setDrawRange(0, Math.floor(positions.length / 3));
+
+    // Fade trajectory based on draw power
+    const mat = this.aimLine.material as LineBasicMaterial;
+    mat.opacity = 0.2 + this.drawPower * 0.5;
   }
 
   private fire() {
@@ -249,6 +262,12 @@ export class BowController {
     this.drawPower = 0;
     this.aimLine.visible = false;
     this.drawIndicator.visible = false;
+
+    // Reset energy orb
+    const orb = this.bowGroup.getObjectByName('energy-orb') as Mesh;
+    if (orb) {
+      (orb.material as MeshBasicMaterial).opacity = 0;
+    }
   }
 
   update(dt: number) {
@@ -256,16 +275,16 @@ export class BowController {
 
     // Check for XR controller input
     const xr = (this.world.input as any).xr;
-    const isXR = xr?.gamepads?.right;
+    const rightGP = xr?.gamepads?.right;
+    const isXR = !!rightGP;
 
     if (isXR) {
       this.updateAimFromXR();
 
-      // XR trigger for draw/fire
-      const rightGP = xr.gamepads.right;
-      const triggerPressed = rightGP?.getButtonPressed?.(0); // trigger
-      const triggerDown = rightGP?.getButtonDown?.(0);
-      const triggerUp = rightGP?.getButtonUp?.(0);
+      // XR trigger for draw/fire using InputComponent enum
+      const triggerPressed = rightGP?.getButtonPressed?.(InputComponent.Trigger);
+      const triggerDown = rightGP?.getButtonDown?.(InputComponent.Trigger);
+      const triggerUp = rightGP?.getButtonUp?.(InputComponent.Trigger);
 
       if (triggerDown && !this.isDrawing) {
         this.isDrawing = true;
@@ -303,8 +322,25 @@ export class BowController {
       } else {
         mat.color.setHex(0xff4400);
       }
+
+      // Animate energy orb on bow
+      const orb = this.bowGroup.getObjectByName('energy-orb') as Mesh;
+      if (orb) {
+        const orbMat = orb.material as MeshBasicMaterial;
+        orbMat.opacity = this.drawPower * 0.6;
+        const orbScale = 1 + this.drawPower * 1.5;
+        orb.scale.setScalar(orbScale);
+        // Pulse
+        const pulse = 1 + Math.sin(performance.now() * 0.01) * 0.1 * this.drawPower;
+        orb.scale.multiplyScalar(pulse);
+      }
     } else {
       this.drawIndicator.visible = false;
+      // Hide energy orb
+      const orb = this.bowGroup.getObjectByName('energy-orb') as Mesh;
+      if (orb) {
+        (orb.material as MeshBasicMaterial).opacity = 0;
+      }
     }
 
     // Update aim trajectory
@@ -312,7 +348,6 @@ export class BowController {
 
     // Update bow visual
     if (!isXR) {
-      // In browser mode, position bow in view
       this.bowGroup.visible = this.isActive;
     }
   }

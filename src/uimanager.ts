@@ -1,5 +1,5 @@
 // UI Manager — creates and manages all PanelUI panels
-import { World, PanelUI, PanelDocument, Follower, FollowBehavior, ScreenSpace, Vector3 } from '@iwsdk/core';
+import { World, PanelUI, PanelDocument, Follower, FollowBehavior, Vector3 } from '@iwsdk/core';
 import { GameState } from './game';
 import { HitZone } from './target';
 
@@ -22,6 +22,11 @@ export interface HUDData {
   misses: number;
   maxMisses: number;
   mode: string;
+  windLabel: string;
+  windArrow: string;
+  powerUpLabel: string;
+  powerUpActive: boolean;
+  powerUpReady: boolean;
 }
 
 export interface ResultsData {
@@ -31,12 +36,14 @@ export interface ResultsData {
   bullseyes: number;
   grade: string;
   isNewBest: boolean;
+  longestStreak: number;
+  perfectRounds: number;
 }
 
 export class UIManager {
   private world: World;
   private panels: Map<string, PanelEntry> = new Map();
-  private gameRef: any = null; // Set after game init
+  private gameRef: any = null;
   private hitFeedbackTimer = 0;
 
   constructor(world: World) {
@@ -48,31 +55,31 @@ export class UIManager {
   }
 
   async init() {
-    // Title screen — world space, facing player
+    // Title screen
     await this.createWorldPanel('title', '/ui/title.json', 0, 1.6, -3, 1.2, 1.4);
 
     // Mode selection
     await this.createWorldPanel('modes', '/ui/modes.json', 0, 1.6, -3, 1.2, 1.6);
 
-    // HUD — head-following
+    // HUD — head-following with wider dimensions for new elements
     await this.createHUDPanel('hud', '/ui/hud.json');
 
-    // Pause menu — world space
+    // Pause menu
     await this.createWorldPanel('pause', '/ui/pause.json', 0, 1.6, -2.5, 0.8, 0.8);
 
-    // Results — world space
+    // Results
     await this.createWorldPanel('results', '/ui/results.json', 0, 1.6, -3, 1.0, 1.2);
 
-    // Leaderboard — world space
+    // Leaderboard
     await this.createWorldPanel('leaderboard', '/ui/leaderboard.json', 0, 1.6, -3, 1.0, 1.4);
 
-    // Achievements — world space
+    // Achievements
     await this.createWorldPanel('achievements', '/ui/achievements.json', 0, 1.6, -3, 1.0, 1.6);
 
-    // Settings — world space
+    // Settings
     await this.createWorldPanel('settings', '/ui/settings.json', 0, 1.6, -3, 1.0, 1.2);
 
-    // Wire up all button handlers after panels are created
+    // Wire up all button handlers
     this.wireButtons();
   }
 
@@ -87,7 +94,7 @@ export class UIManager {
 
   private async createHUDPanel(name: string, config: string) {
     const entity = this.world.createTransformEntity(undefined, { persistent: true });
-    entity.addComponent(PanelUI, { config, maxWidth: 0.45, maxHeight: 0.08 });
+    entity.addComponent(PanelUI, { config, maxWidth: 0.6, maxHeight: 0.08 });
     entity.addComponent(Follower, {
       target: (this.world as any).player?.head,
       offsetPosition: [0, 0.12, -0.55],
@@ -110,8 +117,6 @@ export class UIManager {
   }
 
   private wireButtons() {
-    // We poll for docs since PanelUI might not have initialized yet
-    // Wire them lazily on first show
     this.wireButtonsDeferred();
   }
 
@@ -119,7 +124,6 @@ export class UIManager {
   private wireButtonsDeferred() {
     if (this.buttonsWired) return;
 
-    // Try to wire — if docs aren't ready yet, retry later
     requestAnimationFrame(() => {
       this.tryWireAll();
       if (!this.buttonsWired) {
@@ -194,7 +198,7 @@ export class UIManager {
 
   showPanel(state: GameState) {
     // Hide all panels
-    for (const [name, panel] of this.panels) {
+    for (const [, panel] of this.panels) {
       panel.entity.object3D.visible = false;
     }
 
@@ -239,19 +243,21 @@ export class UIManager {
       this.setTextById(doc, 'hud-arrows', String(data.arrowsLeft));
       this.setTextById(doc, 'hud-round', `${data.round}/${data.totalRounds}`);
     }
+
+    // Wind indicator
+    this.setTextById(doc, 'hud-wind', `${data.windLabel} ${data.windArrow}`);
+
+    // Power-up indicator
+    this.setTextById(doc, 'hud-powerup', data.powerUpLabel);
   }
 
   showHitFeedback(zone: HitZone, points: number) {
-    // Visual feedback via HUD color flash — handled in scoring display
     const doc = this.getDoc('hud');
     if (!doc) return;
 
-    const scoreEl = doc.getElementById?.('hud-score');
-    if (scoreEl) {
-      // Flash the score text
-      this.setTextById(doc, 'hud-score', `+${points}`);
-      this.hitFeedbackTimer = 0.5;
-    }
+    // Flash the score text with points earned
+    this.setTextById(doc, 'hud-score', `+${points}`);
+    this.hitFeedbackTimer = 0.5;
   }
 
   showResults(data: ResultsData) {
@@ -263,6 +269,7 @@ export class UIManager {
     this.setTextById(doc, 'results-accuracy', `${data.accuracy}%`);
     this.setTextById(doc, 'results-combo', `x${data.bestCombo}`);
     this.setTextById(doc, 'results-bullseyes', String(data.bullseyes));
+    this.setTextById(doc, 'results-streak', String(data.longestStreak));
     this.setTextById(doc, 'results-new-best', data.isNewBest ? '★ NEW BEST! ★' : '');
   }
 

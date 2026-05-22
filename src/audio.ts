@@ -308,6 +308,69 @@ export class AudioManager {
     osc.stop(t + 0.2);
   }
 
+  playPowerUp() {
+    const ctx = this.ensureCtx();
+    const t = ctx.currentTime;
+    // Ascending power chord
+    const notes = [330, 440, 554, 660, 880];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, t + i * 0.06);
+      gain.gain.linearRampToValueAtTime(0.15, t + i * 0.06 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.25);
+      osc.connect(gain);
+      gain.connect(this.sfxGain!);
+      osc.start(t + i * 0.06);
+      osc.stop(t + i * 0.06 + 0.25);
+    });
+
+    // Shimmer noise layer
+    const noise = this.createNoise(ctx, 0.4);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(4000, t);
+    filter.Q.value = 5;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.05, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain!);
+  }
+
+  playExplosion() {
+    const ctx = this.ensureCtx();
+    const t = ctx.currentTime;
+
+    // Deep boom
+    const boom = ctx.createOscillator();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(80, t);
+    boom.frequency.exponentialRampToValueAtTime(30, t + 0.4);
+    const boomGain = ctx.createGain();
+    boomGain.gain.setValueAtTime(0.3, t);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    boom.connect(boomGain);
+    boomGain.connect(this.sfxGain!);
+    boom.start(t);
+    boom.stop(t + 0.5);
+
+    // Crackle
+    const noise = this.createNoise(ctx, 0.3);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1500;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.15, t + 0.05);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    noise.connect(filter);
+    filter.connect(nGain);
+    nGain.connect(this.sfxGain!);
+  }
+
   private createNoise(ctx: AudioContext, duration: number): AudioBufferSourceNode {
     const sampleRate = ctx.sampleRate;
     const samples = Math.floor(sampleRate * duration);

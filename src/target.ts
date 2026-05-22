@@ -243,6 +243,19 @@ export class TargetManager {
     return null;
   }
 
+  // Explosive power-up — destroy targets within radius
+  explosiveRadius(center: Vector3, radius: number) {
+    for (const target of this.targets) {
+      if (!target.active) continue;
+      const dist = center.distanceTo(target.position);
+      if (dist < radius) {
+        target.active = false;
+        target.group.visible = false;
+        this.effects.spawnTargetShatter(target.position, HitZone.OUTER);
+      }
+    }
+  }
+
   update(dt: number) {
     for (const target of this.targets) {
       if (!target.active) continue;
