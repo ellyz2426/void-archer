@@ -51,7 +51,7 @@ export class WindSystem {
   }
 
   getWindArrow(): string {
-    if (!this.enabled || this.windStrength < 0.3) return '·';
+    if (!this.enabled || this.windStrength < 0.3) return '-';
     const angle = Math.atan2(this.windDir.x, -this.windDir.z);
     const deg = ((angle * 180 / Math.PI) + 360) % 360;
     // Map angle to arrow (8 directions)

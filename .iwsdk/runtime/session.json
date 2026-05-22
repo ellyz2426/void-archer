@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "82c974a6-999e-4471-9946-f359c0eee78a",
+  "workspaceRoot": "/home/hatch/workspace/void-archer",
+  "pid": 43974,
+  "port": 8081,
+  "localUrl": "https://localhost:8081/",
+  "networkUrls": [
+    "https://198.19.0.2:8081/"
+  ],
+  "aiMode": "agent",
+  "aiTools": [
+    "claude"
+  ],
+  "browser": {
+    "status": "connected",
+    "connected": true,
+    "connectedClientCount": 1,
+    "lastTransitionAt": "2026-05-22T23:05:39.146Z"
+  },
+  "registeredAt": "2026-05-22T23:05:11.344Z",
+  "updatedAt": "2026-05-22T23:05:39.155Z"
+}
