@@ -14,6 +14,7 @@ import { XRInputHandler } from './xrinput';
 import { WindSystem, PowerUpSystem } from './powerups';
 import { CameraShake } from './camerashake';
 import { ThemeId, getAllThemes, saveSelectedTheme, getSelectedTheme } from './themes';
+import { ObstacleManager, OBSTACLE_CONFIGS } from './obstacles';
 
 export enum GameState {
   TITLE = 'title',
@@ -51,6 +52,7 @@ export interface GameContext {
   ui: UIManager;
   xrInput: XRInputHandler;
   cameraShake: CameraShake;
+  obstacles: ObstacleManager;
 }
 
 // Mode-specific config
@@ -147,6 +149,11 @@ export class GameManager {
   // Sub-systems
   wind: WindSystem;
   powerUps: PowerUpSystem;
+  obstacles: ObstacleManager;
+
+  // Combo milestone tracking
+  private lastComboMilestone = 0;
+  private readonly COMBO_MILESTONES = [5, 10, 15, 20, 30, 50];
 
   // Game state
   currentRound = 0;
@@ -170,6 +177,7 @@ export class GameManager {
     this.ctx = ctx;
     this.wind = new WindSystem(ctx.world);
     this.powerUps = new PowerUpSystem();
+    this.obstacles = ctx.obstacles;
     this.setupInputCallbacks();
   }
 
@@ -228,6 +236,16 @@ export class GameManager {
           this.ctx.audio.playComboChime(Math.min(stats.currentCombo, 20));
         }
 
+        // Combo milestone rewards
+        for (const milestone of this.COMBO_MILESTONES) {
+          if (stats.currentCombo >= milestone && this.lastComboMilestone < milestone) {
+            this.lastComboMilestone = milestone;
+            this.ctx.audio.playComboMilestone(milestone);
+            this.ctx.effects.spawnComboMilestone(hitResult.position, milestone);
+            this.ctx.cameraShake.shakeMedium();
+          }
+        }
+
         // Explosive power-up — nearby targets also take damage
         if (this.powerUps.isExplosive()) {
           this.ctx.targets.explosiveRadius(hitResult.position, 3);
@@ -277,6 +295,7 @@ export class GameManager {
     // Arrow miss callback
     this.ctx.arrows.onMiss = () => {
       this.ctx.scoring.addMiss();
+      this.lastComboMilestone = 0; // Reset combo milestone tracking
       if (this.mode === GameMode.ENDURANCE) {
         this.misses++;
         if (this.misses >= this.modeConfig.maxMisses) {
@@ -307,6 +326,7 @@ export class GameManager {
       this.ctx.bow.setActive(false);
       this.ctx.targets.clearAll();
       this.ctx.arrows.clearAll();
+      this.obstacles.clearAll();
       this.wind.setEnabled(false);
     } else if (newState === GameState.PLAYING) {
       this.ctx.bow.setActive(true);
@@ -343,6 +363,14 @@ export class GameManager {
     this.ctx.targets.clearAll();
     this.ctx.arrows.clearAll();
     this.ctx.audio.playGameStart();
+    this.lastComboMilestone = 0;
+
+    // Spawn obstacles for modes that use them
+    this.obstacles.clearAll();
+    const obstacleConfig = OBSTACLE_CONFIGS[mode];
+    if (obstacleConfig) {
+      this.obstacles.spawn(obstacleConfig);
+    }
 
     // Track theme for achievements
     this.ctx.achievements.onThemePlayed(getSelectedTheme());
@@ -434,6 +462,7 @@ export class GameManager {
     // Update wind and power-ups regardless of game state
     this.wind.update(dt);
     this.powerUps.update(dt);
+    this.obstacles.update(dt);
 
     if (this.state !== GameState.PLAYING || this.isGameOver) return;
 

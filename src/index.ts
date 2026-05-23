@@ -13,6 +13,7 @@ import { EffectsManager } from './effects';
 import { AchievementManager } from './achievements';
 import { LeaderboardManager } from './leaderboard';
 import { CameraShake } from './camerashake';
+import { ObstacleManager } from './obstacles';
 
 // ECS System for per-frame game loop — the correct IWSDK pattern
 class GameLoopSystem extends createSystem() {
@@ -114,15 +115,21 @@ async function main() {
   const ui = new UIManager(world);
   const xrInput = new XRInputHandler(world);
   const cameraShake = new CameraShake(world);
+  const obstacles = new ObstacleManager(world, audio);
 
   const game = new GameManager({
     world, audio, effects, scoring, achievements,
-    leaderboard, environment, bow, arrows, targets, ui, xrInput, cameraShake,
+    leaderboard, environment, bow, arrows, targets, ui, xrInput, cameraShake, obstacles,
   });
 
   // Wire cross-references
   ui.setGameRef(game);
   arrows.checkTargetCollision = (pos, radius) => targets.checkCollision(pos, radius);
+  arrows.checkObstacleCollision = (pos) => obstacles.checkCollision(pos);
+  arrows.onShieldBlock = (pos) => {
+    effects.spawnShieldBlock(pos);
+    audio.playShieldBlock();
+  };
 
   environment.setup();
   await ui.init();

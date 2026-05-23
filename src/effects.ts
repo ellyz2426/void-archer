@@ -311,6 +311,100 @@ export class EffectsManager {
     }
   }
 
+  spawnComboMilestone(position: Vector3, milestone: number) {
+    // Spectacular ring burst for combo milestones
+    const milestoneColors: Record<number, number> = {
+      5: 0x00ff88, 10: 0x00ccff, 15: 0xaa44ff,
+      20: 0xff8800, 30: 0xff2244, 50: 0xffd700,
+    };
+    const color = milestoneColors[milestone] || 0xffffff;
+    const count = Math.min(20 + milestone, 50);
+    const speed = 3 + milestone * 0.15;
+
+    // Ring of particles expanding outward
+    for (let i = 0; i < count; i++) {
+      const p = this.getParticle();
+      if (!p) break;
+
+      p.active = true;
+      p.life = 0;
+      p.maxLife = 0.8 + Math.random() * 0.6;
+      p.mesh.position.copy(position);
+      p.mesh.visible = true;
+
+      const angle = (i / count) * Math.PI * 2;
+      const dir = new Vector3(
+        Math.cos(angle),
+        (Math.random() - 0.3) * 0.5,
+        Math.sin(angle),
+      ).normalize();
+      p.velocity.copy(dir.multiplyScalar(speed * (0.7 + Math.random() * 0.3)));
+
+      (p.mesh.material as MeshBasicMaterial).color.setHex(color);
+      p.mesh.scale.setScalar(2 + milestone * 0.05);
+
+      if (!this.particles.includes(p)) this.particles.push(p);
+    }
+
+    // Score popup for milestone
+    const popup = this.getPopup();
+    if (popup) {
+      const text = `x${milestone} COMBO!`;
+      const tex = this.createScoreTexture(text, '#' + color.toString(16).padStart(6, '0'));
+
+      const mat = popup.mesh.material as MeshBasicMaterial;
+      if (mat.map) mat.map.dispose();
+      mat.map = tex;
+      mat.opacity = 1;
+      mat.needsUpdate = true;
+
+      popup.active = true;
+      popup.life = 0;
+      popup.maxLife = 2.0;
+      popup.mesh.position.copy(position);
+      popup.mesh.position.y += 0.8;
+      popup.velocity.set(0, 2.0, 0);
+      popup.mesh.visible = true;
+      popup.mesh.scale.setScalar(2.0);
+
+      if (this.world.camera) {
+        popup.mesh.lookAt(this.world.camera.position);
+      }
+
+      if (!this.scorePopups.includes(popup)) {
+        this.scorePopups.push(popup);
+      }
+    }
+  }
+
+  spawnShieldBlock(position: Vector3) {
+    // Red spark burst when arrow hits a shield
+    for (let i = 0; i < 20; i++) {
+      const p = this.getParticle();
+      if (!p) break;
+
+      p.active = true;
+      p.life = 0;
+      p.maxLife = 0.3 + Math.random() * 0.3;
+      p.mesh.position.copy(position);
+      p.mesh.visible = true;
+
+      const dir = new Vector3(
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+        Math.random() * 2 + 0.5, // biased toward player
+      ).normalize();
+      p.velocity.copy(dir.multiplyScalar(3 + Math.random() * 3));
+
+      const colors = [0xff2244, 0xff4466, 0xff6688, 0xffaa00];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      (p.mesh.material as MeshBasicMaterial).color.setHex(color);
+      p.mesh.scale.setScalar(1.2 + Math.random());
+
+      if (!this.particles.includes(p)) this.particles.push(p);
+    }
+  }
+
   update(dt: number) {
     for (const p of this.particles) {
       if (!p.active) continue;

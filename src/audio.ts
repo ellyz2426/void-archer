@@ -448,6 +448,77 @@ export class AudioManager {
     nGain.connect(this.sfxGain!);
   }
 
+  playComboMilestone(milestone: number) {
+    const ctx = this.ensureCtx();
+    const t = ctx.currentTime;
+
+    // Epic ascending chord for combo milestones
+    const baseFreq = 400 + milestone * 20;
+    const chordNotes = [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 2];
+
+    chordNotes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, t + i * 0.05);
+      gain.gain.linearRampToValueAtTime(0.12, t + i * 0.05 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.6);
+      osc.connect(gain);
+      gain.connect(this.sfxGain!);
+      osc.start(t + i * 0.05);
+      osc.stop(t + i * 0.05 + 0.6);
+    });
+
+    // Shimmer sweep
+    const sweep = ctx.createOscillator();
+    sweep.type = 'sine';
+    sweep.frequency.setValueAtTime(baseFreq * 2, t);
+    sweep.frequency.linearRampToValueAtTime(baseFreq * 4, t + 0.4);
+    const sweepGain = ctx.createGain();
+    sweepGain.gain.setValueAtTime(0.06, t);
+    sweepGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    sweep.connect(sweepGain);
+    sweepGain.connect(this.sfxGain!);
+    sweep.start(t);
+    sweep.stop(t + 0.5);
+  }
+
+  playShieldBlock() {
+    const ctx = this.ensureCtx();
+    const t = ctx.currentTime;
+
+    // Metallic clang
+    const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(400, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 600;
+    filter.Q.value = 5;
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain!);
+    osc.start(t);
+    osc.stop(t + 0.2);
+
+    // Short noise burst
+    const noise = this.createNoise(ctx, 0.1);
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.08, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    const nFilter = ctx.createBiquadFilter();
+    nFilter.type = 'highpass';
+    nFilter.frequency.value = 2000;
+    noise.connect(nFilter);
+    nFilter.connect(nGain);
+    nGain.connect(this.sfxGain!);
+  }
+
   private createNoise(ctx: AudioContext, duration: number): AudioBufferSourceNode {
     const sampleRate = ctx.sampleRate;
     const samples = Math.floor(sampleRate * duration);

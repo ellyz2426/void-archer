@@ -31,9 +31,11 @@ export class ArrowManager {
 
   onHit: ((arrowPos: Vector3, targetId: number) => void) | null = null;
   onMiss: (() => void) | null = null;
+  onShieldBlock: ((arrowPos: Vector3) => void) | null = null;
 
-  // External collision check (set by TargetManager)
+  // External collision checks
   checkTargetCollision: ((pos: Vector3, radius: number) => { targetId: number; hitPos: Vector3 } | null) | null = null;
+  checkObstacleCollision: ((pos: Vector3) => boolean) | null = null;
 
   constructor(world: World, effects: EffectsManager, audio: AudioManager) {
     this.world = world;
@@ -224,6 +226,17 @@ export class ArrowManager {
 
       // Update trail
       this.updateTrail(arrow);
+
+      // Check collision with obstacles (shields block arrows)
+      if (this.checkObstacleCollision) {
+        if (this.checkObstacleCollision(arrow.position)) {
+          arrow.active = false;
+          arrow.group.visible = false;
+          arrow.trailMesh.visible = false;
+          if (this.onShieldBlock) this.onShieldBlock(arrow.position);
+          continue;
+        }
+      }
 
       // Check collision with targets
       if (this.checkTargetCollision) {
